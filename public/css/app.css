@@ -1,0 +1,230 @@
+/* FONTS */
+@font-face {
+    font-family: "Metropolis Black";
+    src: url("../fonts/metropolis.black.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Metropolis";
+    src: url("../fonts/metropolis.medium.otf") format("opentype");
+    font-weight: 300;
+}
+
+:root {
+    --color-primary: #0077b6;
+    --color-primary-light: #51b8e5;
+    --color-primary-dark: #005187;
+
+    --color-black: #000000;
+}
+
+/* BOTONES */
+.btn {
+    padding: 0.5rem 1rem;
+    font-family: "Metropolis", sans-serif;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.btn-primary:hover,
+.btn-outline-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+.btn-secondary {
+    background-color: var(--color-black);
+    border-color: var(--color-black);
+}
+.btn-outline-primary {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.bg-primary-light {
+    background-color: var(--color-primary-light);
+}
+.bg-primary-dark {
+    background-color: var(--color-primary-dark);
+}
+
+.text-primary-light {
+    color: var(--color-primary-light);
+}
+.text-primary-dark {
+    color: var(--color-primary-dark);
+}
+
+.btn-link:link,
+.btn-link:visited {
+    color: var(--color-primary);
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s;
+    position: relative;
+}
+.btn-link:hover {
+    color: var(--color-primary-light);
+}
+
+.b body {
+    font-family: "Metropolis", sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+    background-color: white !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+    font-family: "Metropolis Black", sans-serif;
+    font-weight: 700;
+}
+
+.mc-title {
+    border-left: 7px solid var(--color-primary-dark);
+    padding-left: 10px;
+}
+
+.navbar-nav .nav-item {
+    margin-right: 10px;
+}
+
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+}
+.mc-logo {
+    width: 280px;
+}
+.mc-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.mc-background {
+    max-height: 550px;
+    object-fit: cover;
+}
+.mc-us-svg {
+    width: auto;
+    height: 70px;
+    margin-bottom: 1rem;
+}
+
+#tipo {
+    color: white;
+}
+#precio_minimo:focus {
+    background-color: var(--color-primary-dark);
+}
+#precio_maximo:focus {
+    background-color: var(--color-primary-light);
+}
+.precio label {
+    color: white !important;
+    background: transparent !important;
+}
+.precio label::after {
+    background: transparent !important;
+}
+.card-img-top {
+    height: 280px;
+    object-fit: cover;
+}
+.main-content {
+    min-height: calc(100vh - 344px);
+}
+#mc-carousel .carousel-item img {
+    height: 550px;
+    max-height: 550px;
+    object-fit: cover;
+}
+
+.filters {
+    position: relative;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    transform: translate(0, -50%);
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.prices {
+    padding: 2rem 0 3rem 0;
+}
+
+.section-characteristics {
+    padding: 3rem 0 0rem 0;
+}
+.section-characteristics .container {
+    border-bottom: 1px solid #d4d4d4d3;
+    padding-bottom: 3rem;
+}
+.characteristic-box {
+    border-right: 1px solid #d4d4d4d3;
+    padding-right: 1rem;
+}
+.characteristic-box.last {
+    border-right: none;
+}
+
+.characteristic-box p {
+    opacity: 0.7;
+}
+
+.characteristic-box p {
+    line-height: 1.2;
+}
+
+.mc-fs-1 {
+    font-size: 5rem;
+}
+.mc-table {
+    min-width: 800px;
+}
+.mc-contact {
+    margin-top: -4rem;
+}
+
+.mc-contact .form-control {
+    border: 1px solid var(--color-primary-dark);
+}
+
+.mc-contact label {
+    margin: 0.7rem 0;
+}
+
+.pagination .page-item span,
+.pagination .page-item a {
+    border-radius: 50% !important;
+    margin: 0 5px 0 0;
+}
+
+@media screen and (max-width: 768px) {
+    .filters {
+        transform: translate(0, 10px);
+    }
+    .mc-register;
+}
+
+@media screen and (min-width: 992px) {
+    .mc-register {
+        margin-left: 10px;
+    }
+}
