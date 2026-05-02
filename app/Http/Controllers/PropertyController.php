@@ -22,7 +22,6 @@ use App\Services\AIDescriptionService;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use PhpParser\PrettyPrinter\Standard;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PropertyController extends Controller
@@ -193,7 +192,17 @@ class PropertyController extends Controller
 
     public function newProperty(Request $request)
     {
-        $property = new Standard();
+        $user = Auth::user();
+        $userPackage = $user->userPackages()
+            ->where('remaining_listings', '>', 0)
+            ->first();
+
+        if (!$userPackage) {
+            return redirect()->route('packages')
+                ->with('error', 'Necesitas un paquete con publicaciones disponibles para crear una propiedad.');
+        }
+
+        $property = new Property();
         $types = PropertyTypeModel::all();
         $transactions = TransactionTypeModel::all();
         $status = PropertyStatusModel::all();

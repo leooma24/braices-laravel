@@ -12,18 +12,33 @@ class AjaxController extends Controller
     //
     public function zip(Request $request)
     {
-        $zip = $request->search;
+        $zip = trim((string) $request->search);
+
+        if ($zip === '') {
+            return response()->json([
+                'suburbs' => [],
+                'city' => null,
+                'township' => null,
+            ]);
+        }
 
         $suburbs = Suburb::where('codigo_postal', $zip)->get()->toArray();
+
+        if (empty($suburbs)) {
+            return response()->json([
+                'suburbs' => [],
+                'city' => null,
+                'township' => null,
+            ]);
+        }
+
         $township = Township::find($suburbs[0]['municipio']);
 
-        $response = [
+        return response()->json([
             'suburbs' => $suburbs,
-            'city' => $suburbs[0]['ciudad'],
-            'township' => $township
-        ];
-
-        return response()->json($response);
+            'city' => $suburbs[0]['ciudad'] ?? null,
+            'township' => $township,
+        ]);
     }
 
     public function state(Request $request)

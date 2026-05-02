@@ -335,24 +335,28 @@
                                           </div>
                                         </div>
 
-                                        <div class="col-xs-12 col-md-6 mb-3">
-                                          <select name="property_status_id" class="form-select p-3  @error('property_status_id') {{ 'is-invalid' }} @enderror"
-                                              aria-label="Large select example"
-                                                aria-describedby="invalidStatus"
-                                              >
-                                              <option value="">Estatus</option>
-                                              @foreach ($status as $statu)
-                                                  <option value="{{ $statu->id }}"
-                                                      {{ isset($property->property_status_id) && $statu->id == $property->property_status_id ? 'selected' : ($statu->id == old('property_status_id') ? 'selected' : '' ) }}>
-                                                      {{ $statu->name }}</option>
-                                              @endforeach
-                                          </select>
-                                            @error('property_status_id')
-                                                <div id="invalidStatus" class="invalid-feedback">
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                      </div>
+                                        @if(isset($property->id))
+                                            <div class="col-xs-12 col-md-6 mb-3">
+                                                <select name="property_status_id" class="form-select p-3  @error('property_status_id') {{ 'is-invalid' }} @enderror"
+                                                    aria-label="Estatus"
+                                                    aria-describedby="invalidStatus">
+                                                    <option value="">Estatus</option>
+                                                    @foreach ($status as $statu)
+                                                        <option value="{{ $statu->id }}"
+                                                            {{ isset($property->property_status_id) && $statu->id == $property->property_status_id ? 'selected' : ($statu->id == old('property_status_id') ? 'selected' : '' ) }}>
+                                                            {{ $statu->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('property_status_id')
+                                                    <div id="invalidStatus" class="invalid-feedback">
+                                                        {{ $message }}
+                                                    </div>
+                                                @enderror
+                                            </div>
+                                        @else
+                                            {{-- Nueva propiedad: el estatus se asigna automáticamente como Activa (id=1) en el controlador. --}}
+                                            <input type="hidden" name="property_status_id" value="1">
+                                        @endif
 
                                       <div class="col-xs-12 col-md-6">
                                         @if(filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN))
@@ -517,36 +521,39 @@
                     }
                 });
                 $('#zip').blur(function() {
-                    // Obtener el valor del campo de entrada
                     var value = $(this).val();
+                    if (!value || value.trim() === '') {
+                        return; // sin zip no hay nada que buscar
+                    }
 
-                    // Realizar la petición AJAX
                     $.ajax({
-                        url: `/ajax/zip?search=${value}`, // Cambia esto por la URL de tu servidor
-                        type: 'GET', // O 'GET' según sea necesario
+                        url: `/ajax/zip?search=${encodeURIComponent(value)}`,
+                        type: 'GET',
                         success: function(response) {
-                            // Manejar la respuesta del servidor
-                            if($('#city').val().trim() == ''){
+                            // Si el zip no existe en BD, no hidratamos nada.
+                            if (!response || !response.township) {
+                                return;
+                            }
+
+                            if ($('#city').val().trim() === '' && response.city) {
                                 $('#city').val(response.city);
                             }
 
                             $('#state').val(response.township.estado).change();
-
                             $('#township').val(response.township.id);
+
                             let oldsuburb = $('#suburb').val();
 
-
                             $('#suburb option:not(:first)').remove();
-                            response.suburbs.forEach(element => {
+                            (response.suburbs || []).forEach(element => {
                                 $('#suburb').append(`<option value="${element.id}" codigo_postal="${element.codigo_postal}">${element.nombre}</option>`);
                             });
 
-                            if(suburb) {
+                            if (typeof suburb !== 'undefined' && suburb) {
                                 $('#suburb').val(suburb);
-                            } else {
+                            } else if (oldsuburb) {
                                 $('#suburb').val(oldsuburb);
                             }
-
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                             // Manejar errores
