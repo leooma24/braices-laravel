@@ -157,6 +157,10 @@
                                             href="{{ route('myProperties') }}">Mis Propiedades</a></li>
                                     <li><a class="dropdown-item py-3 {{ Request::is('propiedad/nueva') ? 'active' : '' }}"
                                             href="{{ route('properties.new') }}">Agregar Propiedad</a></li>
+                                    <li><a class="dropdown-item py-3 {{ Request::is('cuenta/mis-reservaciones') ? 'active' : '' }}"
+                                            href="{{ route('my.reservations') }}">Mis Reservaciones</a></li>
+                                    <li><a class="dropdown-item py-3 {{ Request::is('cuenta/reservas-recibidas') ? 'active' : '' }}"
+                                            href="{{ route('host.reservations') }}">Reservas Recibidas</a></li>
 
                                     @role('admin')
                                         <li><a class="dropdown-item py-3 {{ Request::is('administrador') ? 'active' : '' }}" href="{{ route('admin')}}">Administrador</a> </li>

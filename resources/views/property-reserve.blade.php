@@ -63,7 +63,11 @@
                             <span><strong class="fs-4">${{ number_format($property->price_per_night ?? 0, 0) }}</strong> <span class="text-muted">por noche</span></span>
                         </div>
 
-                        <form id="reservationForm" method="POST" action="#" novalidate>
+                        @auth
+                        <form id="reservationForm" method="POST" action="{{ route('reservation.store') }}" novalidate>
+                        @else
+                        <form id="reservationForm" method="GET" action="{{ route('login') }}" novalidate>
+                        @endauth
                             @csrf
                             <input type="hidden" name="property_id" value="{{ $property->id }}">
 
@@ -106,9 +110,9 @@
                             <div id="quoteError" class="alert alert-warning small d-none mb-2" role="alert"></div>
 
                             <button type="submit" id="reserveBtn" class="btn btn-primary w-100" disabled>
-                                Reservar
+                                @auth Reservar @else Inicia sesión para reservar @endauth
                             </button>
-                            <p class="small text-muted text-center mb-0 mt-2">Aún no se te cobrará nada.</p>
+                            <p class="small text-muted text-center mb-0 mt-2">No se te cobrará hasta confirmar el pago.</p>
                         </form>
                     </div>
                 </div>
@@ -217,11 +221,7 @@
                 }
             }
 
-            // El submit real se conecta en Fase 3 (cobro). Por ahora solo previene el envío.
-            document.getElementById('reservationForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-                alert('Cobro en línea próximamente.');
-            });
+            // El submit nativo del form va a /reservaciones (auth) o a /login (guest).
         })();
     </script>
 @endsection

@@ -51,6 +51,7 @@ Route::get('login/facebook/callback', [FacebookController::class, 'callback']);
 Route::get('/propiedad/{slug}/reservar', [ReservationController::class, 'show'])->name('reservation.show');
 Route::post('/api/reservations/quote', [ReservationController::class, 'quote'])->name('api.reservations.quote');
 Route::get('/api/properties/{property}/availability', [ReservationController::class, 'availability'])->name('api.properties.availability');
+Route::get('/reservaciones/retorno', [ReservationController::class, 'paymentReturn'])->name('reservation.payment.return');
 
 Route::get('/propiedades', [PropertyController::class, 'getProperties'])->name('properties');
 Route::get('/propiedad/{slug}', [PropertyController::class, 'getProperty'])->name('property');
@@ -74,6 +75,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/propiedad/{slug}/eliminar', [PropertyController::class, 'destroy'])->name('properties.destroy');
 
     Route::post('/pagos/paypal', [PaypalController::class, 'pay'])->name('paypal.pay');
+
+    Route::post('/reservaciones', [ReservationController::class, 'store'])->name('reservation.store');
+    Route::get('/reservaciones/{reservation}/checkout', [ReservationController::class, 'checkout'])->name('reservation.checkout');
+    Route::post('/reservaciones/{reservation}/cancelar', [ReservationController::class, 'cancel'])->name('reservation.cancel');
+    Route::get('/cuenta/mis-reservaciones', [ReservationController::class, 'myReservations'])->name('my.reservations');
+    Route::get('/cuenta/reservas-recibidas', [ReservationController::class, 'hostReservations'])->name('host.reservations');
 });
 
 Route::get('/cuenta/salir', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
