@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('reservations')) {
+            return; // tabla ya existe en prod o local; no la recreamos
+        }
+
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('property_id')->constrained()->onDelete('cascade');

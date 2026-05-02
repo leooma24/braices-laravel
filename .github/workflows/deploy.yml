@@ -1,0 +1,94 @@
+name: Deploy to FTP
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: # Permite disparar manualmente desde GitHub
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, zip, bcmath
+          coverage: none
+
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies (sin dev, optimizado)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Stub .env mínimo para el build
+        # Solo se usa para que artisan no truene durante el build.
+        # El .env real vive en el servidor y NUNCA se sobreescribe por el deploy.
+        run: |
+          echo "APP_ENV=production" > .env
+          echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=false" >> .env
+
+      - name: Cache de configuración (no aplicado al deploy)
+        # Generamos los caches en CI para validar que la app compila;
+        # el cache real lo regenera el endpoint /deploy/run en producción
+        # con el .env real del servidor.
+        run: |
+          php artisan config:clear
+          php artisan view:clear
+
+      - name: Eliminar archivos que NO deben subirse
+        run: |
+          rm -f .env
+          rm -rf .git .github tests
+          rm -rf .playwright-mcp
+          rm -f phpunit.xml
+          rm -f .editorconfig
+
+      - name: Sync vía FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          # Deja intactos en el servidor estos archivos/dirs (no se sobreescriben):
+          exclude: |
+            **/.env
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/storage/app/**
+            **/storage/framework/cache/data/**
+            **/storage/framework/sessions/**
+            **/storage/logs/**
+            **/public/images/**
+            **/public/photo-user/**
+          log-level: standard
+          dangerous-clean-slate: false
+
+      - name: Disparar /deploy/run en producción (cache + migraciones)
+        # Solo si APP_DEPLOY_URL y DEPLOY_TOKEN están configurados como secrets.
+        if: ${{ secrets.APP_DEPLOY_URL != '' && secrets.DEPLOY_TOKEN != '' }}
+        run: |
+          set -e
+          BASE="${{ secrets.APP_DEPLOY_URL }}"
+          TOKEN="${{ secrets.DEPLOY_TOKEN }}"
+
+          echo "→ status"
+          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=status"
+
+          echo "→ migrate"
+          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=migrate"
+
+          echo "→ cache"
+          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=cache"

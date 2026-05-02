@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DeployController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\PageController;
@@ -47,6 +48,11 @@ Route::get('home', function () {
 
 Route::get('login/facebook', [FacebookController::class, 'login'])->name('login.facebook');
 Route::get('login/facebook/callback', [FacebookController::class, 'callback']);
+
+// Deploy hook — protegido por DEPLOY_TOKEN. Permite correr migraciones y cache
+// commands desde el browser sin SSH. Si DEPLOY_TOKEN no está configurado,
+// el endpoint responde 503 (deshabilitado por seguridad).
+Route::get('/deploy/run', [DeployController::class, 'run'])->middleware('throttle:6,1');
 
 Route::get('/robots.txt', function () {
     $content = "User-agent: *\nAllow: /\nDisallow: /administrador/\nDisallow: /cuenta/\nDisallow: /reservaciones/retorno\nDisallow: /api/\n\nSitemap: " . url('/sitemap.xml') . "\n";

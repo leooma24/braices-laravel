@@ -8,27 +8,56 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('payments')) {
+            return;
+        }
+
+        // package_id pasa a nullable. Solo aplica si no es ya nullable.
+        // Requiere doctrine/dbal — instalado en este proyecto.
+        try {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->unsignedBigInteger('package_id')->nullable()->change();
+            });
+        } catch (\Throwable $e) {
+            // Si falla (p. ej. ya es nullable, o engine no lo soporta), seguimos.
+        }
+
         Schema::table('payments', function (Blueprint $table) {
-            // package_id deja de ser obligatorio: ahora un payment puede ser por paquete o por reservación.
-            $table->unsignedBigInteger('package_id')->nullable()->change();
-
-            $table->foreignId('reservation_id')->nullable()->after('package_id')
-                ->constrained('reservations')->nullOnDelete();
-
-            $table->decimal('amount', 10, 2)->nullable()->after('status');
-            $table->string('provider')->default('mercadopago')->after('amount');
-
-            $table->index(['reservation_id', 'status']);
+            if (!Schema::hasColumn('payments', 'reservation_id')) {
+                $table->foreignId('reservation_id')->nullable()->after('package_id')
+                    ->constrained('reservations')->nullOnDelete();
+            }
+            if (!Schema::hasColumn('payments', 'amount')) {
+                $table->decimal('amount', 10, 2)->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('payments', 'provider')) {
+                $table->string('provider')->default('mercadopago')->after('amount');
+            }
         });
+
+        try {
+            Schema::table('payments', fn (Blueprint $t) => $t->index(['reservation_id', 'status']));
+        } catch (\Throwable) {
+            // Index ya existe.
+        }
     }
 
     public function down(): void
     {
+        if (!Schema::hasTable('payments')) {
+            return;
+        }
+
         Schema::table('payments', function (Blueprint $table) {
-            $table->dropIndex(['reservation_id', 'status']);
-            $table->dropColumn(['amount', 'provider']);
-            $table->dropConstrainedForeignId('reservation_id');
-            // No revertimos package_id a NOT NULL para no fallar si hay registros con null.
+            try { $table->dropIndex(['reservation_id', 'status']); } catch (\Throwable) {}
+            foreach (['amount', 'provider'] as $col) {
+                if (Schema::hasColumn('payments', $col)) {
+                    $table->dropColumn($col);
+                }
+            }
+            if (Schema::hasColumn('payments', 'reservation_id')) {
+                $table->dropConstrainedForeignId('reservation_id');
+            }
         });
     }
 };
