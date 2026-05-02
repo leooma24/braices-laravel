@@ -21,8 +21,8 @@
                     <div class="position-absolute top-0 end-0 m-3">
                         <a class="addToFavorite"><i class="fa fa-heart fs-3"></i></a>
                     </div>
-                    <a href="{{ route('property', $property->slug) }}">
-                        <img src="{{ $property->photo_main }}" class="card-img-top" alt="...">
+                    <a href="{{ route('reservation.show', $property->slug) }}">
+                        <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}">
                     </a>
 
                     <div class="p-3">
@@ -34,9 +34,9 @@
                                 <i class="fa fa-star" aria-hidden="true"></i> 4.5 (20)
                             </div>
                             <p class="text-muted mb-1">{{ Str::words($property->description, 10, '...') }}</p>
-                            <div class="d-flex justify-content-between">
-                                <span><strong class="fs-5">${{ $property->price_per_night }}</strong> por noche</span>
-                                <span><strong class="fs-5">${{ $property->price_per_night * $days}}</strong> en total</span>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span><strong class="fs-5">${{ number_format($property->price_per_night ?? 0, 0) }}</strong> por noche</span>
+                                <a href="{{ route('reservation.show', $property->slug) }}" class="btn btn-sm btn-primary">Reservar</a>
                             </div>
                         </div>
                     </div>

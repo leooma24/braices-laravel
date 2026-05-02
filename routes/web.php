@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AjaxController;
@@ -46,6 +47,10 @@ Route::get('home', function () {
 
 Route::get('login/facebook', [FacebookController::class, 'login'])->name('login.facebook');
 Route::get('login/facebook/callback', [FacebookController::class, 'callback']);
+
+Route::get('/propiedad/{slug}/reservar', [ReservationController::class, 'show'])->name('reservation.show');
+Route::post('/api/reservations/quote', [ReservationController::class, 'quote'])->name('api.reservations.quote');
+Route::get('/api/properties/{property}/availability', [ReservationController::class, 'availability'])->name('api.properties.availability');
 
 Route::get('/propiedades', [PropertyController::class, 'getProperties'])->name('properties');
 Route::get('/propiedad/{slug}', [PropertyController::class, 'getProperty'])->name('property');
