@@ -207,44 +207,54 @@
         </div>
 
         <div class="col-xs-12 col-md-4">
-            <div class="card mb-3 border-1 bg-white">
+            <div class="card mb-3 position-sticky" style="top: 90px;">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="agent">
-                        <img src="{{ $property->user->photo }}" class="rounded-circle" alt="Logo" width="150" height="150">
-                        <div class="ms-3">
-                            <h5 class="card-title mb-0">{{ $property->user->name }}</h5>
-                            <p class="text-secondary">Ejecutivo de ventas</p>
-                            <p class="card-text"><i class="fas fa-envelope"></i> {{ $property->user->email }}</p>
+                        <img src="{{ $property->user->photo }}" class="rounded-circle shadow-sm" alt="{{ $property->user->name }}" width="120" height="120" style="object-fit: cover;">
+                        <h5 class="card-title mt-3 mb-1">{{ $property->user->name }}</h5>
+                        <p class="text-muted-2 small mb-3">Ejecutivo de ventas</p>
+
+                        <div class="d-grid gap-2 mb-3">
+                            @if($property->user->phone_number)
+                                <a href="https://wa.me/{{ preg_replace('/\s+/', '', $property->user->phone_number) }}?text={{ urlencode('Hola, me interesa la propiedad: ' . $property->title) }}"
+                                   target="_blank" rel="noopener"
+                                   class="btn btn-success btn-lg" style="background-color: #25D366; border-color: #25D366;">
+                                    <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                                </a>
+                            @endif
+                            <a href="mailto:{{ $property->user->email }}" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>{{ $property->user->email }}
+                            </a>
+                            <a href="{{ route('my.properties', ['slug' => $property->user->slug]) }}" class="btn btn-link">
+                                Ver más propiedades del agente
+                            </a>
                         </div>
 
-                        <div class="ms-auto">
-                            <a href="https://wa.me/{{ str_replace([' '],'',$property->user->phone_number) }}?text={{ urlencode('Hola, estoy interesado en' . $property->title) }}" target="_blank" class="btn"><i class="fab fa-whatsapp"></i> {{ $property->user->phone_number }}</a>
+                        <div class="social-media d-flex justify-content-center gap-2 mb-3">
+                            @if($property->user->facebook)
+                                <a target="_blank" rel="noopener" href="{{ $property->user->facebook }}" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px;" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                            @endif
+                            @if($property->user->x)
+                                <a target="_blank" rel="noopener" href="{{ $property->user->x }}" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px;" aria-label="Twitter/X"><i class="fab fa-x-twitter"></i></a>
+                            @endif
+                            @if($property->user->instagram)
+                                <a target="_blank" rel="noopener" href="{{ $property->user->instagram }}" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px;" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            @endif
+                            @if($property->user->tiktok)
+                                <a target="_blank" rel="noopener" href="{{ $property->user->tiktok }}" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px;" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                            @endif
                         </div>
-
-                        <div class="ms-auto">
-                            <a href="{{ route('my.properties', ['slug' => $property->user->slug]) }}" class="btn btn-primary">Ver Propiedades</a>
-                        </div>
-
-                        <hr />
-
-                        <div class="social-media d-flex justify-content-center">
-                            <a target="_blank" href="{{ $property->user->facebook }}" class="btn btn-white rounded-circle shadow"><i class="fab fa-facebook"></i></a>
-                            <a target="_blank" href="{{ $property->user->x }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fas fa-times"></i></a>
-                            <a target="_blank" href="{{ $property->user->instagram }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fab fa-instagram"></i></a>
-                            <a target="_blank" href="{{ $property->user->tiktok }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fab fa-tiktok"></i></a>
-                        </div>
-
-                        <hr />
                     </div>
 
-                    <div class="send-message">
-                        @if (session('success'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
-                        </div>
+                    <hr />
 
+                    <div class="send-message text-start">
+                        @if (session('success'))
+                            <div class="alert alert-success" role="alert">
+                                {{ session('success') }}
+                            </div>
                         @endif
-                        <h4 class="mt-3"><strong>Enviar Mensaje</strong></h4>
+                        <h5 class="mt-3 mb-3"><strong>Envíale un mensaje</strong></h5>
                         <form action="{{ route('contact.me') }}" method="POST">
                             @csrf
                             <input type="hidden" name="property_id" value="{{ $property->id }}">

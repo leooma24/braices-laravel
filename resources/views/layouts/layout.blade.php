@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
         integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous" />
@@ -193,17 +198,16 @@
 
     <div class="container">
         @if(!auth()->check())
-            <div class="container text-center d-flex justify-content-center">
-                <div class="col-xxl-8 ">
-                    <h1 class="mb-3">¡Regístrate o inicia sesión para comenzar y disfrutar de todos nuestros servicios!</h1>
-                        <a href="#" class="btn btn-secondary">Iniciar Sesión</a>
-                        <a href="#" class="btn btn-primary">Registrarse</a>
+            <div class="cta-banner my-5 p-5 text-center rounded-3">
+                <div class="col-xxl-8 mx-auto">
+                    <h2 class="mb-3 text-white">Únete a BienesCorp y publica tu propiedad</h2>
+                    <p class="mb-4 text-white opacity-75">Crea una cuenta gratis y comienza a recibir contactos hoy mismo.</p>
+                    <a href="{{ route('login') }}" class="btn btn-light btn-lg me-2">Iniciar sesión</a>
+                    <a href="{{ route('register') }}" class="btn btn-accent btn-lg">Registrarse</a>
                 </div>
             </div>
         @endif
-        <div class="text-success">
-            <hr>
-        </div>
+        <hr>
         <footer class="py-2 my-4 text-center">
             <img src="{{ asset('BienesCorpLogo.png') }}" class="mc-logo" alt="Logo"
                         class="d-inline-block align-text-top">
@@ -233,6 +237,39 @@
     <!--<iframe src="http://braices-laravel.test/user-properties/1" width="100%" height="600px" style="border:none;">-->
 
 
+
+    <a href="https://wa.me/526688180202?text={{ urlencode('Hola, tengo una consulta sobre BienesCorp.') }}"
+       target="_blank" rel="noopener"
+       class="whatsapp-fab"
+       aria-label="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <style>
+        .whatsapp-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: #25D366;
+            color: #fff !important;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4), 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1050;
+            transition: transform 200ms cubic-bezier(0.4,0,0.2,1), box-shadow 200ms;
+            text-decoration: none;
+        }
+        .whatsapp-fab:hover {
+            color: #fff !important;
+            transform: scale(1.08);
+            box-shadow: 0 12px 28px rgba(37, 211, 102, 0.5), 0 4px 8px rgba(0,0,0,0.15);
+        }
+    </style>
 
     <script defer src="https://use.fontawesome.com/releases/v5.15.4/js/solid.js"
         integrity="sha384-/BxOvRagtVDn9dJ+JGCtcofNXgQO/CCCVKdMfL115s3gOgQxWaX/tSq5V8dRgsbc" crossorigin="anonymous">

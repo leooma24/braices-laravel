@@ -1,84 +1,77 @@
 @extends('layouts.layout')
 
 @section('title', 'BienesCorp - Reservaciones')
-@section('description', 'Administración de Bienes Inmuebles')
-@section('og:title', 'BienesCorp - Administración de Bienes Inmuebles')
-@section('og:description', 'Administración de Bienes Inmuebles')
-@section('og:image', asset('BienesCorpLogo.png') )
+@section('description', 'Hospédate en propiedades únicas')
+@section('og:title', 'BienesCorp - Reservaciones')
+@section('og:description', 'Hospédate en propiedades únicas')
+@section('og:image', asset('BienesCorpLogo.png'))
 @section('og:url', url()->current())
 
-@section('content')
-    <div class="container">
-        <div class="filters">
-            <div class="input-group date" id="datepicker">
-                <input class="datepicker" width="276" />
-              </div>
-        </div>
-        <div class="row">
-            @foreach($properties as $property)
-            <div class="col-xs-12 col-md-6 col-lg-4">
-                <div class="card mb-5 border-1 bg-white position-relative">
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <a class="addToFavorite"><i class="fa fa-heart fs-3"></i></a>
-                    </div>
-                    <a href="{{ route('reservation.show', $property->slug) }}">
-                        <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}">
-                    </a>
+@push('head')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+@endpush
 
-                    <div class="p-3">
-                        <div class="row">
-                            <div class="col-xs-12 col-md-9">
-                                <h5 class="card-title"><strong>{{ $property->title }}</strong></h5>
+@section('content')
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1 class="mb-2">Encuentra tu próxima escapada</h1>
+            <p class="lead text-muted-2">Hospédate en propiedades únicas, listas para recibirte.</p>
+        </div>
+
+        <div class="row g-4">
+            @forelse($properties as $property)
+                <div class="col-12 col-md-6 col-lg-4">
+                    <article class="card h-100 position-relative">
+                        <a href="{{ route('reservation.show', $property->slug) }}" class="d-block">
+                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy">
+                        </a>
+
+                        <button type="button" class="btn btn-light position-absolute top-0 end-0 m-3 rounded-circle p-2 shadow-sm" aria-label="Guardar como favorito" style="width: 40px; height: 40px;">
+                            <i class="far fa-heart text-danger"></i>
+                        </button>
+
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0 me-2 text-truncate">{{ $property->title }}</h5>
+                                @if($property->reviews_count ?? $property->reviews()->count())
+                                    @php $avg = $property->averageRating(); @endphp
+                                    @if($avg)
+                                        <span class="small text-nowrap">
+                                            <i class="fas fa-star text-warning"></i> <strong>{{ $avg }}</strong>
+                                        </span>
+                                    @endif
+                                @endif
                             </div>
-                            <div class="col-xs-12 col-md-3">
-                                <i class="fa fa-star" aria-hidden="true"></i> 4.5 (20)
-                            </div>
-                            <p class="text-muted mb-1">{{ Str::words($property->description, 10, '...') }}</p>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span><strong class="fs-5">${{ number_format($property->price_per_night ?? 0, 0) }}</strong> por noche</span>
-                                <a href="{{ route('reservation.show', $property->slug) }}" class="btn btn-sm btn-primary">Reservar</a>
+
+                            <p class="card-text small text-muted-2 mb-3">{{ Str::words($property->description, 16, '...') }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                <div>
+                                    <span class="mc-price">${{ number_format($property->price_per_night ?? 0, 0) }}</span>
+                                    <small class="text-muted-2"> /noche</small>
+                                </div>
+                                <a href="{{ route('reservation.show', $property->slug) }}" class="btn btn-primary btn-sm">
+                                    Reservar
+                                </a>
                             </div>
                         </div>
-                    </div>
-
-
+                    </article>
                 </div>
-            </div>
-            @endforeach
+            @empty
+                <div class="col-12">
+                    <div class="alert alert-info text-center py-5">
+                        <i class="fas fa-bed fs-2 mb-3 d-block text-primary"></i>
+                        <h5 class="mb-2">Aún no hay propiedades para reservar</h5>
+                        <p class="mb-0 text-muted-2">Vuelve pronto, estamos sumando opciones nuevas.</p>
+                    </div>
+                </div>
+            @endforelse
         </div>
+
+        @if(method_exists($properties, 'links'))
+            <div class="d-flex justify-content-center mt-4">
+                {{ $properties->links() }}
+            </div>
+        @endif
     </div>
-
-
-<script>
-
-
-    $(document).ready(function() {
-
-        $('.datepicker').datepicker({
-            format: 'yyyy-mm-dd',
-            startDate: new Date(),
-            todayHighlight: true,
-            autoclose: true,
-            language: 'es',
-
-        });
-
-        $.fn.datepicker.dates['es'] = {
-            days: ["Domingo", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-            daysShort: ["Do", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-            daysMin: ["Do", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-            months: ["Enero", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-            monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            today: "Hoy",
-            clear: "Limpiar",
-            format: "yyyy-mm-dd",
-            titleFormat: "MM yyyy", /* Leverages same syntax as 'format' */
-            weekStart: 0
-        };
-    });
-
-
-
-</script>
-
 @endsection
