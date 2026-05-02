@@ -27,6 +27,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('sitemap:generate')
             ->dailyAt('04:00')
             ->withoutOverlapping();
+
+        // Backups (spatie/laravel-backup): clean viejos a las 02:00 + nuevo a las 02:30.
+        $schedule->command('backup:clean')->dailyAt('02:00')->withoutOverlapping();
+        $schedule->command('backup:run --only-db')->dailyAt('02:30')->withoutOverlapping();
+        // Backup completo (DB + archivos) semanal domingo 03:30.
+        $schedule->command('backup:run')->weeklyOn(0, '03:30')->withoutOverlapping();
     }
 
     /**

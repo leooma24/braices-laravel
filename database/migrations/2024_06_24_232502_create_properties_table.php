@@ -16,11 +16,11 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('address');
-            $table->int('suburb');
-            $table->int('city');
-            $table->int('township');
-            $table->int('state');
-            $table->int('country');
+            $table->unsignedInteger('suburb')->nullable();
+            $table->string('city')->nullable();
+            $table->unsignedInteger('township')->nullable();
+            $table->unsignedInteger('state')->nullable();
+            $table->unsignedInteger('country')->nullable();
             $table->string('zip');
             $table->string('price')->default(0);
             $table->tinyInteger('bedrooms')->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->string('slug')->unique();
 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('property_type_id')->constrained()->onDelete('cascade');
+            $table->foreignId('property_type_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('transaction_type_id')->constrained()->onDelete('cascade');
             $table->foreignId('property_status_id')->constrained('property_status')->onDelete('cascade');
 

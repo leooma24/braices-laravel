@@ -63,9 +63,11 @@ class Reservation extends Model
     /** Reservaciones cuyas fechas se solapan con el rango dado. */
     public function scopeOverlapping(Builder $query, string $checkIn, string $checkOut): Builder
     {
+        // whereDate fuerza comparación de fecha (sin hora) — necesario en sqlite
+        // donde los casts de date pueden almacenar `YYYY-MM-DD 00:00:00`.
         return $query
-            ->where('check_in_date', '<', $checkOut)
-            ->where('check_out_date', '>', $checkIn);
+            ->whereDate('check_in_date', '<', $checkOut)
+            ->whereDate('check_out_date', '>', $checkIn);
     }
 
     public function scopeForProperty(Builder $query, int $propertyId): Builder

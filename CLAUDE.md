@@ -97,6 +97,39 @@ Two providers wired in: `PaypalController` (auth-only `/pagos/paypal` route) and
 - Image uploads land in `public/images/`. The repo has a `public/.gitignore` (untracked) that, if committed as `*` + `!.gitignore`, would block all future tracked files in `public/` — be careful when staging it.
 - Many routes are duplicated by accident in `web.php` (e.g., `/propiedad/{slug}` is registered twice). Don't add a third — fix the duplicate if you touch the area.
 
+## Tests
+
+Feature tests viven en `tests/Feature/`. PHPUnit usa SQLite in-memory (`phpunit.xml`) — los tests son rápidos y autocontenidos.
+
+```powershell
+php artisan test                                # todo
+php artisan test tests/Feature/ReservationFlowTest.php
+php artisan test --filter=guest_creates_pending_reservation
+```
+
+Cobertura crítica: ReservationFlow (cotización, disponibilidad, store, cancel, expire, complete-past), PropertyAuthorization (intruder no puede ver/editar/borrar propiedades ajenas).
+
+Notas:
+- Las tablas geo (`paises`, `estados`, `municipios`, `colonias`) viven solo en MySQL real — los tests que dependen de ellas están `markTestSkipped`.
+- `email_verified_at` no está en `User::$fillable` — al crear usuarios de test, asígnalo con `$user->email_verified_at = now(); $user->save();`.
+- `transaction_types` y `property_status` requieren seed manual en setUp (FK constraints).
+
+## Backups
+
+`spatie/laravel-backup` instalado. Schedule:
+- `backup:clean` diario 02:00 — limpia viejos según retention en `config/backup.php`.
+- `backup:run --only-db` diario 02:30 — solo dump de MySQL.
+- `backup:run` semanal domingo 03:30 — DB + archivos.
+
+Para activar emails de notificación: configura `mail` driver y agrega la dirección en `config/backup.php` → `notifications.mail.to`.
+
+## Error monitoring
+
+Stub para Sentry (apagado por flag `SENTRY_ENABLED=false`). Para activar:
+1. `composer require sentry/sentry-laravel`
+2. Set `SENTRY_LARAVEL_DSN` en `.env`
+3. Set `SENTRY_ENABLED=true`
+
 ## Feature flags
 
 - `AI_DESCRIPTIONS_ENABLED=true|false` (default `false`) — gatea el botón "Generar con IA" en property-edit y el endpoint `POST /api/properties/ai-description`. Cuando está apagado, el endpoint retorna 404 y el botón no se renderiza. Para activarlo, también requiere `ANTHROPIC_API_KEY` en `.env`. El service vive en `app/Services/AIDescriptionService.php` (Anthropic SDK PHP, modelo `claude-opus-4-7`).

@@ -155,6 +155,14 @@ class PropertyController extends Controller
     {
         $property = Property::with(['propertyTypes', 'status', 'images', 'user'])->where('slug', $id)->first();
 
+        if (!$property) {
+            return redirect(route('myProperties'))->with('error', 'La Propiedad no existe');
+        }
+
+        if ($property->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $countries = Country::all()->toArray();
         $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries);
 
@@ -259,7 +267,13 @@ class PropertyController extends Controller
         }
 
         $data = $request->all();
-        $data['price'] = str_replace(',', '', $data['price']);
+        if (isset($data['price'])) {
+            $data['price'] = str_replace(',', '', $data['price']);
+        }
+
+        // Evitar mass-assignment de campos sensibles. user_id y slug no están
+        // en $fillable, pero property_status_id sí — y solo admin debería cambiarlo.
+        unset($data['property_status_id'], $data['user_id'], $data['slug'], $data['is_featured'], $data['featured_until']);
 
         $photo = $request->file('photo_main');
         if ($photo) {
@@ -270,15 +284,16 @@ class PropertyController extends Controller
         }
 
         $request->validate([
-            'images.*' => 'required|file|mimes:jpg,jpeg,png,bmp|max:2048',
+            'images.*' => 'sometimes|file|mimes:jpg,jpeg,png,bmp|max:2048',
         ]);
 
         $uploadedFiles = $request->file('images');
 
         if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
-                // Procesar cada archivo
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                // Generar nombre seguro: timestamp + random (no usar getClientOriginalName
+                // directamente — un atacante puede meter caracteres exóticos o paths).
+                $fileName = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $file->extension();
                 $file->move(public_path('images'), $fileName);
                 $property->images()->create([
                     'photo' => $fileName,
@@ -298,6 +313,10 @@ class PropertyController extends Controller
         $property = Property::find($id);
         if (!$property) {
             return redirect(route('myProperties'))->with('error', 'La Propiedad no existe');
+        }
+
+        if ($property->user_id !== Auth::id()) {
+            abort(403);
         }
 
         $image = $property->images()->find($image);
@@ -389,9 +408,15 @@ class PropertyController extends Controller
 
     public function destroy($id)
     {
-        $property = Property::find($id);
+        // El parámetro de la ruta es {slug} pero el form envía el id numérico,
+        // así que aceptamos cualquiera de los dos.
+        $property = Property::where('id', $id)->orWhere('slug', $id)->first();
         if (!$property) {
             return redirect(route('myProperties'))->with('error', 'La Propiedad no existe');
+        }
+
+        if ($property->user_id !== Auth::id()) {
+            abort(403);
         }
 
         $property->delete();

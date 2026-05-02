@@ -36,8 +36,8 @@ Route::controller(PageController::class)->group(function () {
     Route::get('/planes', 'packages')->name('packages');
 });
 
-Route::post('/contacto', [FormController::class, 'contact'])->name('contact');
-Route::post('/contactame', [FormController::class, 'contactMe'])->name('contact.me');
+Route::post('/contacto', [FormController::class, 'contact'])->middleware('throttle:5,1')->name('contact');
+Route::post('/contactame', [FormController::class, 'contactMe'])->middleware('throttle:5,1')->name('contact.me');
 
 
 
@@ -62,7 +62,7 @@ Route::get('/propiedades', [PropertyController::class, 'getProperties'])->name('
 Route::get('/propiedad/{slug}', [PropertyController::class, 'getProperty'])->name('property');
 Route::get('/propiedades/{slugUser}/propiedad/{slug}', [PropertyController::class, 'getUserProperty'])->name('userProperty');
 Route::get('/propiedades/{slug}', [PropertyController::class, 'getPropertiesByUser'])->name('my.properties');
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login');
 Route::get('/propiedad/{slug}', [PropertyController::class, 'getProperty'])->name('property');
 Route::get('/propiedad/imagen/{id}', [PropertyController::class, 'getImageProperty'])->name('imageProperty');
 
@@ -131,7 +131,7 @@ Route::controller(AjaxController::class)->group(function () {
 Route::controller(AuthController::class)->group(function () {
     Route::get('/login', 'loginForm')->name('login')->middleware('my_guest');
     Route::get('/registrarse', 'registerForm')->name('register')->middleware('my_guest');
-    Route::post('/registrarse', 'register')->name('register.post');
+    Route::post('/registrarse', 'register')->middleware('throttle:5,1')->name('register.post');
 });
 
 Route::controller(VerificationController::class)->group(function () {
