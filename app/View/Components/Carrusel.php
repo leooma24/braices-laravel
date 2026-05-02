@@ -12,10 +12,9 @@ class Carrusel extends Component
      * Create a new component instance.
      */
     public function __construct(
-        public string $image = '',
+        public $image = '',
         public $images = null
-    )
-    {
+    ) {
         //
     }
 

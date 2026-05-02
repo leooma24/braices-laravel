@@ -24,6 +24,9 @@ class LandRequest extends PropertyRequest
         $rules = parent::rules();
         $rules['bedrooms'] = 'nullable|numeric';
         $rules['bathrooms'] = 'nullable|numeric';
+        $rules['square_meters_contruction'] = 'nullable|numeric';
+        $rules['levels'] = 'nullable|integer';
+
         return $rules;
     }
 }

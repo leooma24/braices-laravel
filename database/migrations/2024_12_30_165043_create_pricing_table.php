@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // No-op: la columna property_type_id se mantiene por compatibilidad con la relación legacy.
+        Schema::create('pricing', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
+            $table->date('date');
+            $table->decimal('price_per_night', 10, 2);
+        });
     }
 
     /**
@@ -19,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // No-op: up() no realiza cambios, por lo que down() tampoco debe modificar el esquema.
+        Schema::dropIfExists('pricing');
     }
 };

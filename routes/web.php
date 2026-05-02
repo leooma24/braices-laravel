@@ -27,9 +27,10 @@ use App\Http\Controllers\FacebookController;
 |
 */
 
-Route::controller(PageController::class)->group(function() {
+Route::controller(PageController::class)->group(function () {
     Route::get('/', 'index')->name('main');
     Route::get('/nosotros', 'us')->name('us');
+    Route::get('/reservaciones', 'reservations')->name('reservations');
     Route::get('/contacto', 'contact')->name('contact');
     Route::get('/planes', 'packages')->name('packages');
 });
@@ -39,7 +40,7 @@ Route::post('/contactame', [FormController::class, 'contactMe'])->name('contact.
 
 
 
-Route::get('home', function(){
+Route::get('home', function () {
     return redirect('/');
 });
 
@@ -52,6 +53,7 @@ Route::get('/propiedades/{slugUser}/propiedad/{slug}', [PropertyController::clas
 Route::get('/propiedades/{slug}', [PropertyController::class, 'getPropertiesByUser'])->name('my.properties');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('/propiedad/{slug}', [PropertyController::class, 'getProperty'])->name('property');
+Route::get('/propiedad/imagen/{id}', [PropertyController::class, 'getImageProperty'])->name('imageProperty');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cuenta/perfil', [UserController::class, 'getProfile'])->name('profile');
@@ -71,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/cuenta/salir', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::middleware('role:admin')->group(function() {
+Route::middleware('role:admin')->group(function () {
     Route::get('/administrador', [AdminController::class, 'index'])->name('admin');
     Route::get('/administrador/usuario/crear', [AdminController::class, 'create'])->name('users.create');
     Route::put('/administrador/usuario/nuevo', [AdminController::class, 'new'])->name('users.new');
@@ -94,12 +96,9 @@ Route::middleware('role:admin')->group(function() {
     Route::put('/administrador/paquetes/nueva', [PackageController::class, 'new'])->name('admin.packages.new');
     Route::put('/administrador/paquetes/save/{package}', [PackageController::class, 'save'])->name('admin.packages.save');
     Route::delete('/administrador/paquetes/eliminar/{package}', [PackageController::class, 'destroy'])->name('admin.packages.destroy');
-
-
-
 });
 
-Route::controller(AjaxController::class)->group(function() {
+Route::controller(AjaxController::class)->group(function () {
     Route::get('/ajax/zip', 'zip')->name('ajax.zip');
     Route::get('/ajax/state', 'state')->name('ajax.state');
 });
@@ -107,25 +106,21 @@ Route::controller(AjaxController::class)->group(function() {
 
 
 
-Route::controller(AuthController::class)->group(function() {
+Route::controller(AuthController::class)->group(function () {
     Route::get('/login', 'loginForm')->name('login')->middleware('my_guest');
     Route::get('/registrarse', 'registerForm')->name('register')->middleware('my_guest');
     Route::post('/registrarse', 'register')->name('register.post');
 });
 
-Route::controller(VerificationController::class)->group(function() {
+Route::controller(VerificationController::class)->group(function () {
     Route::get('/email/verify', 'show')->middleware('auth')->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', 'verify')->middleware(['auth', 'signed'])->name('verification.verify');
     Route::post('/email/verification-notification', 'resend')->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
 });
 
-Route::controller(MercadoPagoController::class)->group(function() {
+Route::controller(MercadoPagoController::class)->group(function () {
     Route::get('/webhook', 'webhook')->name('webhook');
     Route::post('/get-product', 'getProduct')->name('getProduct');
 });
 
 Route::get('/user-properties/{user}', [PropertyController::class, 'getUserProperties'])->name('user.properties');
-
-
-
-

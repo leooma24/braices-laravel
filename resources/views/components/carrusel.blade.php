@@ -58,4 +58,13 @@
         font-size: 2rem;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, .6);
     }
+
+    @media (max-width: 768px) {
+        .carousel-caption h1 {
+            font-size: 2.5rem;
+        }
+        .carousel-caption p {
+            font-size: 1.5rem;
+        }
+    }
   </style>

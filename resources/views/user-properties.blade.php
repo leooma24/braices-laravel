@@ -4,7 +4,7 @@
 
 <div class="user-properties">
     <div class="container">
-        <div class="row">
+        <div class="row ">
             @foreach($properties as $key => $property)
                 <div class="col">
                     <div class="card">

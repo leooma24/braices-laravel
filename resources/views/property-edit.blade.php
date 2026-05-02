@@ -43,6 +43,9 @@
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab" aria-controls="map-tab-pane" aria-selected="false">Mapa</button>
+                                </li>
+                                  <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="reservation-tab" data-bs-toggle="tab" data-bs-target="#reservation" type="button" role="tab" aria-controls="reservation-tab-pane" aria-selected="false">Reservación</button>
                                   </li>
 
                               </ul>
@@ -57,7 +60,7 @@
                                                 <div class=" mt-3">
                                                     <input name="photo_main" class="form-control p-3 @error('photo_main') {{ 'is-invalid' }} @enderror"
                                                         aria-describedby="invalidPhoto"
-                                                     type="file" id="formFile">
+                                                        type="file" id="formFile">
                                                      @error('property_type_id')
                                                 <div id="invalidPhoto" class="invalid-feedback">
                                                     {{ $message }}
@@ -67,16 +70,21 @@
                                             </div>
                                         </div>
                                         <div class="col-xs-12 col-md-6">
+
                                             <select
                                                 multiple
                                                 name="property_type_id[]"
-                                                class="form-select p-3 mb-3  @error('property_type_id') {{ 'is-invalid' }} @enderror"
+                                                id="property_type_id"
+                                                class="form-select  mb-3  @error('property_type_id') {{ 'is-invalid' }} @enderror"
                                                 aria-describedby="invalidType"
+                                                data-placeholder="Tipo de Propiedad"
                                                 >
-                                                <option value="">Tipo de Propiedad</option>
+
                                                 @foreach ($types as $type)
                                                     <option value="{{ $type->id }}"
-                                                        @if(in_array($type->id, $property->propertyTypes->pluck('id')->toArray())) selected @endif>
+                                                        @if(isset($property->id) && in_array($type->id, $property->propertyTypes->pluck('id')->toArray()) || in_array($type->id, (array) old('property_type_id')))
+                                                            selected
+                                                        @endif>
                                                         {{ $type->name }}</option>
                                                 @endforeach
                                             </select>
@@ -85,8 +93,7 @@
                                                     {{ $message }}
                                                 </div>
                                             @enderror
-
-                                            <select name="transaction_type_id" class="form-select p-3 mb-3  @error('property_type_id') {{ 'is-invalid' }} @enderror"
+                                            <select name="transaction_type_id" class="form-select p-3 mb-3 mt-3  @error('transaction_type_id') {{ 'is-invalid' }} @enderror"
                                                 aria-label="Large select example"
                                                 aria-describedby="invalidTran">
                                                 <option value="">Tipo de Transacción</option>
@@ -139,12 +146,15 @@
 
 
                                         <div class="col-xs-12 col-md-6">
-                                            <div class="form-floating mb-3">
-                                                <input name="price" type="text" class="form-control @error('price') {{ 'is-invalid' }} @enderror" id="price"
+                                            <div class="input-group mb-3 mt-3">
+                                                <span class="input-group-text p-3">$</span>
+                                                <input name="price" type="text" class="form-control p-3 @error('price') {{ 'is-invalid' }} @enderror" id="price"
                                                     value="{{ $property->price ?? old('price') }}"
                                                     aria-describedby="invalidPrice"
-                                                    placeholder="Precio">
-                                                <label for="price">Precio</label>
+                                                    placeholder="Precio"
+                                                    oninput="formatCurrency(this)"
+                                                    >
+
                                                 @error('price')
                                                     <div id="invalidPrice" class="invalid-feedback">
                                                         {{ $message }}
@@ -153,13 +163,12 @@
                                             </div>
                                         </div>
 
-
                                         <div class="col-xs-12 col-md-6">
                                             <x-form-input
                                                 name="square_feet"
                                                 label="Metros cuadrados (Terreno)"
                                                 type="number"
-                                                value="{{ $property->square_feet ?? '' }}" />
+                                                value="{{ $property->square_feet ?? old('square_feet') }}" />
 
                                         </div>
 
@@ -201,15 +210,16 @@
                                                 name="square_meters_contruction"
                                                 label="Metros Cuadrados de Contrucción"
                                                 type="number"
-                                                value="{{ $property->square_meters_contruction ?? '' }}" />
+                                                value="{{ $property->square_meters_contruction ?? old('square_meters_contruction') }}" />
 
                                         </div>
 
                                         <div class="col-xs-12 col-md-6">
                                             <x-form-input
                                                 name="front"
+                                                type="number"
                                                 label="Metros de Frente"
-                                                value="{{ $property->front ?? '' }}" />
+                                                value="{{ $property->front ?? old('front') }}" />
 
                                         </div>
 
@@ -218,7 +228,7 @@
                                                 name="depth"
                                                 label="Metros de fondo"
                                                 type="number"
-                                                value="{{ $property->depth ?? '' }}" />
+                                                value="{{ $property->depth ?? old('depth') }}" />
 
                                         </div>
 
@@ -227,7 +237,7 @@
                                                 name="levels"
                                                 label="Niveles"
                                                 type="number"
-                                                value="{{ $property->levels ?? '' }}" />
+                                                value="{{ $property->levels ?? old('levels') }}" />
 
                                         </div>
 
@@ -236,24 +246,26 @@
                                                 name="year_built"
                                                 label="Año de Construcción"
                                                 type="number"
-                                                value="{{ $property->year_built ?? '' }}" />
+                                                value="{{ $property->year_built ?? old('year_built') }}" />
 
                                         </div>
+
+
 
                                         <div class="col-xs-12 col-md-6">
-                                          <div class="form-floating mb-3">
-                                              <input name="lot_size" type="text" class="form-control @error('lot_size') {{ 'is-invalid' }} @enderror" id="lot_size"
-                                                value="{{ $property->lot_size ?? old('lot_size') }}"
-                                                aria-describedby="invalidLotSize"
-                                                  placeholder="Metros Cuadrados">
-                                              <label for="lot_size">Tamaño</label>
-                                                @error('lot_size')
-                                                    <div id="invalidLotSize" class="invalid-feedback">
-                                                        {{ $message }}
-                                                    </div>
-                                                @enderror
+                                            <div class="form-floating mb-3">
+                                                <input name="zip" type="text" class="form-control @error('zip') {{ 'is-invalid' }} @enderror" id="zip"
+                                                  value="{{ $property->zip ?? old('zip') }}"
+                                                  aria-describedby="invalidZip"
+                                                    placeholder="Codigo Postal">
+                                                <label for="zip">Codigo Postal</label>
+                                                  @error('zip')
+                                                      <div id="invalidZip" class="invalid-feedback">
+                                                          {{ $message }}
+                                                      </div>
+                                                  @enderror
+                                            </div>
                                           </div>
-                                        </div>
 
                                         <div class="col-xs-12 col-md-6">
                                             <x-form-select
@@ -268,7 +280,7 @@
                                             <x-form-select
                                                 name="state"
                                                 label="Estado"
-                                                :value="$property->state ?? ''"
+                                                :value="$property->state ?? old('state')"
                                                 :options="$states"
                                                 textLabel="nombre" />
                                         </div>
@@ -277,7 +289,7 @@
                                             <x-form-select
                                                 name="township"
                                                 label="Municipio"
-                                                :value="$property->township ?? ''"
+                                                :value="$property->township ?? old('township')"
                                                 :options="$townships"
                                                 textLabel="nombre" />
                                         </div>
@@ -301,26 +313,12 @@
                                             <x-form-select
                                                 name="suburb"
                                                 label="Colonia"
-                                                :value="$property->suburb ?? ''"
+                                                :value="$property->suburb ?? old('suburb')"
                                                 :options="$suburbs"
                                                 textLabel="nombre"
                                                 prop="codigo_postal" />
                                         </div>
 
-                                        <div class="col-xs-12 col-md-6">
-                                          <div class="form-floating mb-3">
-                                              <input name="zip" type="text" class="form-control @error('zip') {{ 'is-invalid' }} @enderror" id="zip"
-                                                value="{{ $property->zip ?? old('zip') }}"
-                                                aria-describedby="invalidZip"
-                                                  placeholder="Codigo Postal">
-                                              <label for="zip">Codigo Postal</label>
-                                                @error('zip')
-                                                    <div id="invalidZip" class="invalid-feedback">
-                                                        {{ $message }}
-                                                    </div>
-                                                @enderror
-                                          </div>
-                                        </div>
 
                                         <div class="col-xs-12 col-md-6">
                                           <div class="form-floating mb-3">
@@ -401,6 +399,42 @@
                                     </div>
                                 </div>
 
+                                <div class="tab-pane fade pt-3" id="reservation" role="tabpanel" aria-labelledby="reservatuib-tab" tabindex="3">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-md-6">
+                                            <input type="checkbox" name="is_reservable" id="is_reservable" value="1"
+                                                @if(isset($property->is_reservable) && $property->is_reservable)
+                                                    checked
+                                                @endif
+                                                />
+                                            <label for="is_reservable">¿Se puede reservar?</label>
+                                        </div>
+                                        <div class="col-xs-12 col-md-6">
+                                            <x-form-input
+                                                name="max_guests"
+                                                label="Máximo de huespedes"
+                                                type="number"
+                                                value="{{ $property->max_guests ?? old('max_guests') }}" />
+                                        </div>
+
+                                        <div class="col-xs-12 col-md-6">
+                                            <x-form-input
+                                                name="price_per_night"
+                                                label="Precio por noche"
+                                                type="number"
+                                                value="{{ $property->price_per_night ?? old('price_per_night') }}" />
+                                        </div>
+
+                                        <div class="col-xs-12 col-md-6">
+                                            <x-form-input
+                                                name="cleaning_fee"
+                                                label="Costo de limpieza"
+                                                type="number"
+                                                value="{{ $property->cleaning_fee ?? old('cleaning_fee') }}" />
+                                        </div>
+                                    </div>
+                                </div>
+
                               </div>
 
                               <div class="col-xs-12">
@@ -419,7 +453,62 @@
         </div>
 
         <script>
+            function formatCurrency(input) {
+                // Obtener el valor actual sin comas ni otros caracteres no numéricos
+                let value = input.value.replace(/[^0-9.]/g, '');
+
+                // Si el valor no es un número válido, limpiamos el campo
+                if (isNaN(value) || value === '') {
+                    input.value = '';
+                    return;
+                }
+
+                // Dividimos la parte decimal de la parte entera
+                const parts = value.split('.');
+
+                // Solo permitir una parte decimal
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts[1].substring(0, 2); // Limitar a dos decimales si el usuario ingresa más
+                }
+
+                // Formatear la parte entera con comas
+                let integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+                // Unir la parte entera y la decimal, si existe
+                input.value = parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+            }
             $(document).ready(function() {
+                formatCurrency(document.getElementById('price'));
+                const suburb = @json($property->suburb ?? old('suburb'));
+                $( '#property_type_id' ).select2( {
+                    theme: 'bootstrap-5'
+                } );
+
+                $('#property_type_id').change(function() {
+                    const that = $(this)
+                    var values = that.val();
+                    var isTerreno = false;
+                    values.forEach(element => {
+                        const option = that.children(`option[value=${element}]`);
+                        if(option.text().trim().toLowerCase().includes('terreno')) {
+                            isTerreno = true;
+                        }
+
+                    });
+                    if(isTerreno) {
+                        $('#bedrooms').parent().parent().hide();
+                        $('#bathrooms').parent().parent().hide();
+                        $('#square_meters_contruction').parent().parent().hide();
+                        $('#levels').parent().parent().hide();
+                        $('#year_built').parent().parent().hide();
+                    } else {
+                        $('#bedrooms').parent().parent().show();
+                        $('#bathrooms').parent().parent().show();
+                        $('#square_meters_contruction').parent().parent().show();
+                        $('#levels').parent().parent().show();
+                        $('#year_built').parent().parent().show();
+                    }
+                });
                 $('#zip').blur(function() {
                     // Obtener el valor del campo de entrada
                     var value = $(this).val();
@@ -430,15 +519,27 @@
                         type: 'GET', // O 'GET' según sea necesario
                         success: function(response) {
                             // Manejar la respuesta del servidor
-                            $('#city').val(response.city);
+                            if($('#city').val().trim() == ''){
+                                $('#city').val(response.city);
+                            }
+
                             $('#state').val(response.township.estado).change();
 
                             $('#township').val(response.township.id);
-                            $('#suburb').empty();
+                            let oldsuburb = $('#suburb').val();
+
+
+                            $('#suburb option:not(:first)').remove();
                             response.suburbs.forEach(element => {
                                 $('#suburb').append(`<option value="${element.id}" codigo_postal="${element.codigo_postal}">${element.nombre}</option>`);
                             });
-                            $('#suburb').val(response.id);
+
+                            if(suburb) {
+                                $('#suburb').val(suburb);
+                            } else {
+                                $('#suburb').val(oldsuburb);
+                            }
+
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                             // Manejar errores
@@ -461,7 +562,6 @@
                             response.forEach(element => {
                                 $('#township').append(`<option value="${element.id}">${element.nombre}</option>`);
                             });
-                            console.log('Respuesta del servidor:', response);
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                             // Manejar errores
@@ -472,8 +572,13 @@
 
                 $('#suburb').change(function() {
                     const value = $('#suburb option:selected').attr('codigo_postal');
-                    $('#zip').val(value);
+                    if($('#zip').val().trim() == '') {
+                        $('#zip').val(value);
+                    }
                 })
+                $('#property_type_id').change();
+                $('#state').change();
+                $('#zip').blur();
             });
         </script>
 

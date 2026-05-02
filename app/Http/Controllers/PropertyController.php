@@ -30,21 +30,21 @@ class PropertyController extends Controller
     {
         $data = $request->all();
 
-        $list = Property::with(['propertyTypes', 'status']);
+        $list = Property::with(['propertyTypes', 'status'])->where('property_status_id', 1);
 
         if (!empty($data['tipo'])) {
-            $list->whereHas('propertyTypes', function($q) use ($data) {
+            $list->whereHas('propertyTypes', function ($q) use ($data) {
                 $q->where('property_type_id', $data['tipo']);
             });
         }
-        if(!empty($data['tipo_transaccion'])) {
+        if (!empty($data['tipo_transaccion'])) {
             $list->where('transaction_type_id', $data['tipo_transaccion']);
         }
-        if(!empty($data['precio_minimo'])) {
+        if (!empty($data['precio_minimo'])) {
             $list->where('price', '>=', $data['precio_minimo'],);
         }
-        if(!empty($data['precio_maximo'])) {
-            $list->where('price', '<=', $data['precio_maximo'],);
+        if (!empty($data['precio_maximo'])) {
+            $list->where('price', '<=', $data['precio_maximo']);
         }
         $list = $list->paginate($request->get('per_page', 15));
 
@@ -57,10 +57,11 @@ class PropertyController extends Controller
     public function getPopularProperties(Request $request)
     {
         $list = Property::with(['type', 'status'])
-        ->paginate($request->get('per_page', 15));
+            ->where('property_status_id', 1)
+            ->paginate($request->get('per_page', 15));
 
         foreach ($list as $key => $property) {
-            if(!empty($property['photo_main'])) {
+            if (!empty($property['photo_main'])) {
                 $list[$key]['photo_main'] = URL::to('/') . '/images/' . $property['photo_main'];
             }
         }
@@ -71,11 +72,12 @@ class PropertyController extends Controller
     public function getBestProperties(Request $request)
     {
         $list = Property::with(['type', 'status'])
-        ->orderBy('price', 'desc')
-        ->paginate($request->get('per_page', 15));
+            ->where('property_status_id', 1)
+            ->orderBy('price', 'desc')
+            ->paginate($request->get('per_page', 15));
 
         foreach ($list as $key => $property) {
-            if(!empty($property['photo_main'])) {
+            if (!empty($property['photo_main'])) {
                 $list[$key]['photo_main'] = URL::to('/') . '/images/' . $property['photo_main'];
             }
         }
@@ -100,17 +102,17 @@ class PropertyController extends Controller
         $list = Property::with(['type', 'status'])->where('user_id', $user->id);
 
         if (!empty($data['tipo'])) {
-            $list->whereHas('propertyTypes', function($q) use ($data) {
+            $list->whereHas('propertyTypes', function ($q) use ($data) {
                 $q->where('property_type_id', $data['tipo']);
             });
         }
-        if(!empty($data['tipo_transaccion'])) {
+        if (!empty($data['tipo_transaccion'])) {
             $list->where('transaction_type_id', $data['tipo_transaccion']);
         }
-        if(!empty($data['precio_minimo'])) {
+        if (!empty($data['precio_minimo'])) {
             $list->where('price', '>=', $data['precio_minimo'],);
         }
-        if(!empty($data['precio_maximo'])) {
+        if (!empty($data['precio_maximo'])) {
             $list->where('price', '<=', $data['precio_maximo'],);
         }
         $list = $list->paginate($request->get('per_page', 10));
@@ -119,7 +121,7 @@ class PropertyController extends Controller
         $transactions = TransactionTypeModel::all();
 
         $qrCode = QrCode::size(150)
-        ->generate(URL::to('/') . '/propiedades/' . $user->slug);
+            ->generate(URL::to('/') . '/propiedades/' . $user->slug);
 
         return view('user-slug-properties', compact('list', 'user', 'qrCode', 'types', 'transactions', 'data'));
     }
@@ -127,7 +129,7 @@ class PropertyController extends Controller
     public function getProperty(Request $request, $id)
     {
         $qrCode = QrCode::size(150)
-        ->generate(URL::to('/') . '/propiedad/' . $id);
+            ->generate(URL::to('/') . '/propiedad/' . $id);
         $property = Property::with(['propertyTypes', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName'])->where('slug', $id)->first();
 
         $property->increment('views');
@@ -138,7 +140,7 @@ class PropertyController extends Controller
     public function getUserProperty(Request $request, $slugUser, $slugProperty)
     {
         $qrCode = QrCode::size(150)
-        ->generate(URL::to('/') . '/propiedades/' . $slugUser . '/propiedad/' . $slugProperty);
+            ->generate(URL::to('/') . '/propiedades/' . $slugUser . '/propiedad/' . $slugProperty);
         $property = Property::with(['type', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName'])->where('slug', $slugProperty)->first();
 
         $property->increment('views');
@@ -151,22 +153,22 @@ class PropertyController extends Controller
         $property = Property::with(['propertyTypes', 'status', 'images', 'user'])->where('slug', $id)->first();
 
         $countries = Country::all()->toArray();
-        $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries );
+        $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries);
 
         $states = State::where('pais', 1)->get()->toArray();
-        $states = array_merge([['id' => '', 'nombre' => 'Seleccione un estado']], $states );
+        $states = array_merge([['id' => '', 'nombre' => 'Seleccione un estado']], $states);
 
         $townships = [];
-        if($property->state) {
+        if ($property->state) {
             $townships = Township::where('estado', $property->state)->get()->toArray();
         }
-        $townships = array_merge([['id' => '', 'nombre' => 'Seleccione un municipio']], $townships );
+        $townships = array_merge([['id' => '', 'nombre' => 'Seleccione un municipio']], $townships);
 
         $suburbs = [];
-        if($property->township) {
+        if ($property->township) {
             $suburbs = Suburb::where('municipio', $property->township)->get()->toArray();
         }
-        $suburbs = array_merge([['id' => '', 'nombre' => 'Seleccione una colonia']], $suburbs );
+        $suburbs = array_merge([['id' => '', 'nombre' => 'Seleccione una colonia']], $suburbs);
 
 
         $types = PropertyTypeModel::all();
@@ -193,22 +195,27 @@ class PropertyController extends Controller
         $status = PropertyStatusModel::all();
 
         $countries = Country::all()->toArray();
-        $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries );
+        $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries);
 
         $states = State::where('pais', 1)->get()->toArray();
-        $states = array_merge([['id' => '', 'nombre' => 'Seleccione un estado']], $states );
+        $states = array_merge([['id' => '', 'nombre' => 'Seleccione un estado']], $states);
 
         $townships = [];
-        $townships = array_merge([['id' => '', 'nombre' => 'Seleccione un municipio']], $townships );
+        $townships = array_merge([['id' => '', 'nombre' => 'Seleccione un municipio']], $townships);
 
         $suburbs = [];
-        $suburbs = array_merge([['id' => '', 'nombre' => 'Seleccione una colonia']], $suburbs );
+        $suburbs = array_merge([['id' => '', 'nombre' => 'Seleccione una colonia']], $suburbs);
 
         return view('property-edit', compact(
-            'property', 'types',
-            'transactions', 'status',
-            'countries', 'states',
-            'townships', 'suburbs'));
+            'property',
+            'types',
+            'transactions',
+            'status',
+            'countries',
+            'states',
+            'townships',
+            'suburbs'
+        ));
     }
 
     public function getPropertyTypes(Request $request)
@@ -225,7 +232,7 @@ class PropertyController extends Controller
         return response()->json($list, 200);
     }
 
-    public function saveProperty(Request $request, $id) : RedirectResponse
+    public function saveProperty(Request $request, $id): RedirectResponse
     {
         $property = Property::find($id);
         $user = Auth::user();
@@ -239,9 +246,10 @@ class PropertyController extends Controller
         }
 
         $data = $request->all();
+        $data['price'] = str_replace(',', '', $data['price']);
 
         $photo = $request->file('photo_main');
-        if($photo) {
+        if ($photo) {
             $photoName = time() . '.' . $photo->extension();
             $photo->move(public_path('images'), $photoName);
 
@@ -254,7 +262,7 @@ class PropertyController extends Controller
 
         $uploadedFiles = $request->file('images');
 
-        if($uploadedFiles) {
+        if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
                 // Procesar cada archivo
                 $fileName = time() . '_' . $file->getClientOriginalName();
@@ -272,14 +280,15 @@ class PropertyController extends Controller
         return redirect(route('myProperties'))->with('success', 'La Propieda ha sido Actualizada');
     }
 
-    public function deleteImage($id, $image) {
+    public function deleteImage($id, $image)
+    {
         $property = Property::find($id);
-        if(!$property) {
+        if (!$property) {
             return redirect(route('myProperties'))->with('error', 'La Propiedad no existe');
         }
 
         $image = $property->images()->find($image);
-        if(!$image) {
+        if (!$image) {
             return redirect(route('myProperties'))->with('error', 'La Imagen no existe');
         }
 
@@ -287,9 +296,10 @@ class PropertyController extends Controller
         return redirect(route('properties.edit', $property->slug))->with('success', 'La Imagen ha sido eliminada');
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         $property = Property::find($id);
-        if(!$property) {
+        if (!$property) {
             return redirect(route('myProperties'))->with('error', 'La Propiedad no existe');
         }
 
@@ -297,39 +307,51 @@ class PropertyController extends Controller
         return redirect(route('myProperties'))->with('success', 'La Propiedad ha sido eliminada');
     }
 
-    public function create(PropertyRequest $request)
+    public function create(Request $request)
     {
         $user = Auth::user();
-        $property = new Property();
 
         $userPackage = $user->userPackages()
             ->where('remaining_listings', '>', 0)
             ->first();
 
-        $userPackage->remaining_listings -= 1;
-        $userPackage->save();
+        if (!$userPackage) {
+            return redirect()->back()
+                ->with('error', 'No tienes paquetes con publicaciones disponibles')
+                ->withInput();
+        }
 
-        $data = $request->all();
+        $data = array_filter($request->all(), function ($value) {
+            return !is_null($value);
+        });
+        // No permitir que el usuario fije el estatus de la propiedad desde el form
+        unset($data['property_status_id'], $data['user_id'], $data['slug']);
 
         $photo = $request->file('photo_main');
-        if($photo) {
+        if ($photo) {
             $photoName = time() . '.' . $photo->extension();
             $photo->move(public_path('images'), $photoName);
 
             $data['photo_main'] = $photoName;
         }
 
+        $property = new Property();
         $property->fill($data);
-        $property->user_id  = $user->id;
+        $property->user_id = $user->id;
+        $property->property_status_id = 1;
         $property->slug = SlugHelper::createUniqueSlug($property->title, Property::class);
         $property->save();
 
         $property->propertyTypes()->sync($request->property_type_id);
 
+        $userPackage->remaining_listings -= 1;
+        $userPackage->save();
+
         return redirect(route('myProperties'))->with('success', 'La Propiedad ha sido creada');
     }
 
-    public function uploadPhoto(request $request) {
+    public function uploadPhoto(request $request)
+    {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
@@ -350,5 +372,128 @@ class PropertyController extends Controller
         $properties = Property::where('user_id', $user->id)->get();
 
         return view('user-properties', compact('properties'));
+    }
+
+    public function getImageProperty($id)
+    {
+        $property = Property::find($id);
+        if (!$property) {
+            abort(404);
+        }
+
+        $width = 300;
+        $height = 450;
+        $image = imagecreatetruecolor($width, $height);
+        $backgroundColor = imagecolorallocate($image, 255, 255, 255);
+        imagefill($image, 0, 0, $backgroundColor);
+
+        // El accessor devuelve URL pública; resolver a path real del filesystem
+        $rawPhoto = $property->getRawOriginal('photo_main');
+        $propertyImagePath = $rawPhoto ? public_path('images/' . $rawPhoto) : null;
+        $extension = $propertyImagePath ? strtolower(pathinfo($propertyImagePath, PATHINFO_EXTENSION)) : null;
+
+        $propertyImage = null;
+        if ($propertyImagePath && file_exists($propertyImagePath)) {
+            if (in_array($extension, ['jpg', 'jpeg'])) {
+                $propertyImage = imagecreatefromjpeg($propertyImagePath);
+            } elseif ($extension === 'png') {
+                $propertyImage = imagecreatefrompng($propertyImagePath);
+            } elseif ($extension === 'gif') {
+                $propertyImage = imagecreatefromgif($propertyImagePath);
+            } elseif ($extension === 'webp' && function_exists('imagecreatefromwebp')) {
+                $propertyImage = imagecreatefromwebp($propertyImagePath);
+            }
+        }
+
+        $propertyImageHeight = 0;
+        if ($propertyImage) {
+            $propertyImageWidth = imagesx($propertyImage);
+            $propertyImageHeight = imagesy($propertyImage);
+
+            if ($propertyImageWidth > 300) {
+                $newWidth = 300;
+                $newHeight = (int) (($propertyImageHeight / $propertyImageWidth) * $newWidth);
+                $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                imagecopyresampled($resizedImage, $propertyImage, 0, 0, 0, 0, $newWidth, $newHeight, $propertyImageWidth, $propertyImageHeight);
+                imagedestroy($propertyImage);
+                $propertyImage = $resizedImage;
+                $propertyImageWidth = $newWidth;
+                $propertyImageHeight = $newHeight;
+            }
+
+            imagecopy($image, $propertyImage, 0, 0, 0, 0, $propertyImageWidth, $propertyImageHeight);
+            imagedestroy($propertyImage);
+        }
+
+        // Asignar un color para el texto
+        $textColor = imagecolorallocate($image, 0, 0, 0); // Negro
+
+        $fontPath = public_path('fonts/metropolis.medium.otf'); // Asegúrate de tener esta fuente en la ruta especificada
+
+        // Añadir texto a la imagen
+        // Función para centrar el texto
+        function centerText($image, $text, $fontSize, $y, $color, $fontPath, $width)
+        {
+            $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
+            $textWidth = $bbox[2] - $bbox[0];
+            $x = ($width - $textWidth) / 2;
+            imagettftext($image, $fontSize, 0, $x, $y, $color, $fontPath, $text);
+        }
+
+        // Función para dividir el texto en varias líneas si es demasiado largo
+        function wrapText($text, $fontSize, $fontPath, $maxWidth)
+        {
+            $words = explode(' ', $text);
+            $lines = [];
+            $currentLine = '';
+
+            foreach ($words as $word) {
+                $testLine = $currentLine . ' ' . $word;
+                $bbox = imagettfbbox($fontSize, 0, $fontPath, $testLine);
+                $textWidth = $bbox[2] - $bbox[0];
+
+                if ($textWidth > $maxWidth) {
+                    $lines[] = trim($currentLine);
+                    $currentLine = $word;
+                } else {
+                    $currentLine = $testLine;
+                }
+            }
+
+            $lines[] = trim($currentLine);
+            return $lines;
+        }
+
+        // Añadir texto a la imagen
+        $plus = 25;
+        $texts = [
+            $property->title,
+            $property->suburbName?->nombre,
+            '$' . number_format($property->price),
+            "{$property->front} x {$property->depth} mts de terreno",
+        ];
+        if ($property->square_meters_contruction) {
+            $texts[] = "Construcción de {$property->square_meters_contruction} m2";
+        }
+        $texts[] = "Información {$property->user?->phone_number}";
+
+        $y = $propertyImageHeight + $plus;
+        foreach ($texts as $text) {
+            $lines = wrapText($text, 12, $fontPath, $width);
+            foreach ($lines as $line) {
+                centerText($image, $line, 12, $y, $textColor, $fontPath, $width);
+                $y += $plus;
+            }
+        }
+
+        // Devolver la imagen directamente (evita race condition con archivo temporal compartido)
+        ob_start();
+        imagepng($image);
+        $imageData = ob_get_clean();
+        imagedestroy($image);
+
+        return response($imageData, 200)
+            ->header('Content-Type', 'image/png')
+            ->header('Cache-Control', 'no-store');
     }
 }

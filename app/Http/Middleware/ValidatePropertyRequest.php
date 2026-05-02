@@ -18,11 +18,22 @@ class ValidatePropertyRequest
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $propertyType = $request->input('property_type_id')[0];
-        $type = PropertyTypeModel::find($propertyType);
+        $propertyType = $request->input('property_type_id');
+        if (!$propertyType) {
+            return redirect()->back()->withErrors(['transaction_type_id' => 'El tipo de propiedad es requerido'])->withInput();
+        }
+
+        $type = PropertyTypeModel::find($propertyType[0]);
+        if (!$type) {
+            return redirect()->back()->with('error', 'Tipo de propiedad no encontrado')->withInput();
+        }
 
         $propertyRequest = PropertyRequestFactory::make($type->name);
-        // Validar los datos manualmente
+
+        $request->merge([
+            'price' => str_replace(',', '', $request->input('price')),
+        ]);
+
         $validator = Validator::make(
             $request->all(),
             $propertyRequest->rules(),
@@ -32,10 +43,6 @@ class ValidatePropertyRequest
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        if (!$type) {
-            return redirect()->back()->with('error', 'Tipo de propiedad no encontrado');
         }
 
         return $next($request);

@@ -4,9 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
         integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <title>@yield('title')</title>
     <meta name="description" content="@yield('description')" />
@@ -34,11 +39,15 @@
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://unpkg.com/gijgo@1.9.14/js/gijgo.min.js" type="text/javascript"></script>
+    <link href="https://unpkg.com/gijgo@1.9.14/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+
 </head>
 
 <body>
@@ -54,22 +63,6 @@
     </div>
 
     <div class="container">
-        <header class="pt-3 pb-2">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-between justify-content-md-end flex-row align-items-center">
-                    <div class="d-block d-md-none" style="width: 140px;">
-                        <a class="navbar-brand" href="/">
-                            <img src="{{ asset('BienesCorpLogo.png') }}" class="mc-logo" alt="Logo"
-                                class="d-inline-block align-text-top"
-                                style="max-width: 100%;">
-
-                        </a>
-                    </div>
-
-                </div>
-            </div>
-        </header>
-
 
         <nav class="navbar sticky-top navbar-expand-lg text-center text-lg-left"
             aria-label="Thirteenth navbar example">
@@ -79,12 +72,46 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse d-lg-flex" id="navbarsExample11">
-                <a class="navbar-brand col-lg-3 me-0" href="/">
+            <div class="" style="width: 160px;">
+                <a class="navbar-brand" href="/">
                     <img src="{{ asset('BienesCorpLogo.png') }}" class="mc-logo" alt="Logo"
-                        class="d-inline-block align-text-top">
+                        class="d-inline-block align-text-top"
+                        style="max-width: 100%;">
 
                 </a>
+            </div>
+
+
+            @auth
+                <div class="d-block d-md-none position-relative btn-group dropstart">
+                    <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" data-bs-display="static">
+                        <span
+                            class="badge  p-1  text-white bg-primary border border-primary-subtle rounded-pill">
+                            <img class="rounded-circle" width="28" height="28"
+                                src="{{ Auth::user()->photo }}" alt="">
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-start">
+                        <li><a class="dropdown-item py-3" href="{{ route('profile') }}">Datos Personales</a>
+                        </li>
+                        <li><a class="dropdown-item py-3 {{ Request::is('cuenta/mis-propiedades') ? 'active' : '' }}"
+                                href="{{ route('myProperties') }}">Mis Propiedades</a></li>
+                        <li><a class="dropdown-item py-3 {{ Request::is('propiedad/nueva') ? 'active' : '' }}"
+                                href="{{ route('properties.new') }}">Agregar Propiedad</a></li>
+
+                        @role('admin')
+                            <li><a class="dropdown-item py-3 {{ Request::is('administrador') ? 'active' : '' }}" href="{{ route('admin')}}">Administrador</a> </li>
+                        @endrole
+
+                        <hr class="dropdown-divider">
+                        <li><a class="dropdown-item" href="{{ route('logout') }}">Salir</a></li>
+                    </ul>
+                </div>
+            @endauth
+
+            <div class="collapse navbar-collapse d-lg-flex" id="navbarsExample11">
+
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" aria-current="page"
@@ -99,6 +126,10 @@
                             href="/propiedades">Propiedades</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {{ Request::is('reservaciones') ? 'active' : '' }}"
+                            href="/reservaciones">Reservaciones</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {{ Request::is('planes') ? 'active' : '' }}"
                             href="/planes">Planes</a>
                     </li>
@@ -108,7 +139,7 @@
                     </li>
 
                     @auth
-                            <li class="nav-item position-relative" style="min-width: 160px;">
+                            <li class="nav-item position-relative d-none d-md-block" style="min-width: 160px;">
                                 <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown"
                                     aria-expanded="false" data-bs-display="static">
                                     <span style="min-width: 130px;"

@@ -62,15 +62,17 @@
             </div>
         </div>
         <div class="col-12 col-md-8">
-            <div class="row">
+            <div class="row mb-2 row-cols-lg-2">
                 @foreach ($list as $property)
-                    <div class="col-6 col-xs-12">
+                    <div class="col">
                         <div class="card mb-5 border-1 bg-white">
                             <a href="{{ route('userProperty', ['slugUser' => $user->slug, 'slug' => $property->slug]) }}">
                                 <img src="{{ $property->photo_main }}" class="card-img-top" alt="...">
                             </a>
                             <div class="types position-absolute top-0 start-0 m-3">
-                                <div class="badge p-2 bg-danger">{{ $property->type->name }}</div>
+                                @foreach ($property->propertyTypes as $propertyType)
+                                    <div class="badge p-2 text-bg-primary">{{ $propertyType->name }}</div>
+                                @endforeach
                                 <div class="badge p-2 bg-warning">{{ $property->transaction->name }}</div>
                             </div>
 

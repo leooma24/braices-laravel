@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // No-op: la columna property_type_id se mantiene por compatibilidad con la relación legacy.
+        Schema::create('property_rules', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('property_id')->constrained('properties')->onDelete('cascade');
+            $table->string('rule');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -19,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // No-op: up() no realiza cambios, por lo que down() tampoco debe modificar el esquema.
+        Schema::dropIfExists('property_rules');
     }
 };

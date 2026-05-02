@@ -15,7 +15,7 @@
                     @foreach($property->propertyTypes as $propertyType)
                         <div class="badge p-2 bg-danger">{{ $propertyType->name }}</div>
                     @endforeach
-                    <div class="badge p-2 bg-warning rounded-0">{{ $property->transaction->name }}</div>
+                    <div class="badge p-2 bg-warning">{{ $property->transaction->name }}</div>
                 </div>
 
                 <div class="card-body">
@@ -27,13 +27,24 @@
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="me-3">
-                            <img src="{{ asset('bed.svg') }}" alt="bed" width="20" height="20" />
+                            @if($property->isLand())
+                                <span> <img src="{{ asset('sizes.svg') }}" alt="Frente" width="20" height="20" /> {{ number_format($property->front) }} m² frente</span>
+                            @else
+                            <span><img src="{{ asset('bed.svg') }}" alt="bed" width="20" height="20" />
                             {{ $property->bedrooms }}
                             Recámaras</span>
+                            @endif
+                        </span>
                         <span class="me-3">
-                            <img src="{{ asset('baths.svg') }}" alt="bed" width="20" height="20" />
-                             {{ $property->bathrooms }}
-                            Baños</span>
+                            @if($property->isLand())
+                                <span> <img src="{{ asset('sizes.svg') }}" alt="Fondo" width="20" height="20" /> {{ number_format($property->depth) }} m² fondo</span>
+                            @else
+                            <span>
+                                <img src="{{ asset('baths.svg') }}" alt="bed" width="20" height="20" />
+                                {{ $property->bathrooms }} Baños
+                            </span>
+                            @endif
+                        </span>
                         <span>
                             <img src="{{ asset('sizes.svg') }}" alt="bed" width="20" height="20" />
                             {{ number_format($property->square_feet) }}

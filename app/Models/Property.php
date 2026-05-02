@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Property extends Model
 {
@@ -40,6 +41,12 @@ class Property extends Model
         'depth',
         'levels',
         'square_meters_contruction',
+        'is_reservable',
+        'max_guests',
+        'price_per_night',
+        'cleaning_fee',
+        'check_in_time',
+        'check_out_time',
     ];
 
     /**
@@ -104,4 +111,29 @@ class Property extends Model
         return $value ? asset('images/' . $value) : null;
     }
 
+    public function isLand()
+    {
+        foreach ($this->propertyTypes as $type) {
+            $name = STR::lower($type->name);
+            if (STR::contains($name, 'terreno')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function amenities()
+    {
+        return $this->belongsToMany(Amenity::class, 'property_amenities');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function availability()
+    {
+        return $this->hasMany(PropertyAvailability::class);
+    }
 }

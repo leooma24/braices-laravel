@@ -154,6 +154,21 @@ h6,
     max-height: 550px;
     object-fit: cover;
 }
+.imageEstado {
+    margin-top: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+.select2-selection__choice {
+    background-color: #f0f0f0 !important;
+    border-color: var(--color-primary-dark) !important;
+    color: var(--color-primary-dark) !important;
+}
+.select2-selection__choice__remove {
+    fill: white !important;
+}
 
 .filters {
     position: relative;

@@ -29,7 +29,10 @@
             <div class="card mb-3 border-1 bg-white">
                 <div class="card-body">
                     <div>
-                        <div class="badge text-bg-primary">{{ $property->type->name }}</div>
+                        @foreach ($property->propertyTypes as $propertyType)
+                            <div class="badge text-bg-primary">{{ $propertyType->name }}</div>
+                        @endforeach
+
                         <div class="badge text-bg-primary">{{ $property->status->name }}</div>
                         <div class="badge text-bg-secondary"> <i class="fas fa-eye"></i> {{ $property->views }} Vistas</div>
                     </div>
@@ -54,25 +57,37 @@
                             <span> <img src="{{ asset('key.svg') }}" alt="bed" width="20" height="20" /> {{ $property->id }}</span>
                         </div>
                         <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('market.svg') }}" alt="bed" width="20" height="20" /> {{ $property->type->name }}</span>
+                            <span> <img src="{{ asset('market.svg') }}" alt="bed" width="20" height="20" />
+                                @foreach ($property->propertyTypes as $propertyType)
+                                    {{ $propertyType->name }}
+                                @endforeach
+                            </span>
+                        </div>
+                        @if(!$property->isLand())
+                            <div class="col-xs-6 col-md-3 p-2">
+                                <span>
+                                    <img src="{{ asset('bed.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bedrooms }} Recámaras
+
+                                </span>
+                            </div>
+
+                            <div class="col-xs-6 col-md-3 p-2">
+                                <span> <img src="{{ asset('baths.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bathrooms }} Baños</span>
+                            </div>
+                        @endif
+                        <div class="col-xs-6 col-md-3 p-2">
+                            <span> <img src="{{ asset('sizes.svg') }}" alt="Metros Cuadrados" width="20" height="20" /> {{ number_format($property->square_feet) }} m²</span>
+                        </div>
+                        @if(!$property->isLand())
+                            <div class="col-xs-6 col-md-3 p-2">
+                                <span> <img src="{{ asset('calendar.svg') }}" alt="Año de Construcción" width="20" height="20" /> {{ ($property->year_built) }}</span>
+                            </div>
+                        @endif
+                        <div class="col-xs-6 col-md-3 p-2">
+                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="Metros de Frente" width="20" height="20" /> {{ ($property->front) }} de frente</span>
                         </div>
                         <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('bed.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bedrooms }} Recámaras</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('baths.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bathrooms }} Baños</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('sizes.svg') }}" alt="bed" width="20" height="20" /> {{ number_format($property->square_feet) }} m²</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('calendar.svg') }}" alt="bed" width="20" height="20" /> {{ ($property->year_built) }}</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="bed" width="20" height="20" /> {{ ($property->front) }} de frente</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="bed" width="20" height="20" /> {{ ($property->depth) }} de fondo</span>
+                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="Metros de Fondo" width="20" height="20" /> {{ ($property->depth) }} de fondo</span>
                         </div>
                     </div>
                 </div>
@@ -247,6 +262,13 @@
                         <h4 class="mt-3"><strong>QR Code</strong></h4>
                         {{ $qrCode }}
                     </div>
+                    <h4 class="mt-5">Compartela en tus estados de WhatsApp</h4>
+                    <div class="d-flex justify-content-center">
+                        <div class="imageEstado">
+                            <img src="/propiedad/imagen/{{ $property->id  }}" alt="Estado" />
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
