@@ -1,11 +1,78 @@
 @extends('layouts.layout')
 
 @section('title', 'BienesCorp - ' . $property->title)
-@section('description', $property->description)
+@section('description', Str::limit(strip_tags($property->description), 155))
 @section('og:title', 'BienesCorp - ' . $property->title)
-@section('og:description', $property->description)
-@section('og:image', $property->photo_main )
+@section('og:description', Str::limit(strip_tags($property->description), 155))
+@section('og:image', $property->photo_main)
 @section('og:url', url()->current())
+
+@push('head')
+    @php
+        $isReservable = (bool) $property->is_reservable;
+        $type = $isReservable ? 'Accommodation' : 'RealEstateListing';
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => $type,
+            'name' => $property->title,
+            'description' => strip_tags($property->description),
+            'url' => url()->current(),
+            'image' => $property->photo_main,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $property->address,
+                'addressLocality' => $property->city,
+                'addressRegion' => $property->stateName?->nombre,
+                'postalCode' => $property->zip,
+                'addressCountry' => $property->countryName?->nombre ?? 'MX',
+            ],
+        ];
+        if ($property->lat && $property->long) {
+            $jsonLd['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float) $property->lat,
+                'longitude' => (float) $property->long,
+            ];
+        }
+        if (!$isReservable) {
+            $jsonLd['offers'] = [
+                '@type' => 'Offer',
+                'price' => (float) $property->price,
+                'priceCurrency' => 'MXN',
+                'availability' => 'https://schema.org/InStock',
+                'url' => url()->current(),
+            ];
+        } else {
+            $jsonLd['priceRange'] = '$' . number_format((float)($property->price_per_night ?? 0));
+            $jsonLd['numberOfRooms'] = $property->bedrooms;
+            $jsonLd['occupancy'] = [
+                '@type' => 'QuantitativeValue',
+                'maxValue' => $property->max_guests,
+            ];
+        }
+        if (!$property->isLand()) {
+            $jsonLd['numberOfBedrooms'] = $property->bedrooms;
+            $jsonLd['numberOfBathroomsTotal'] = $property->bathrooms;
+        }
+        $jsonLd['floorSize'] = [
+            '@type' => 'QuantitativeValue',
+            'value' => (float) $property->square_feet,
+            'unitCode' => 'MTK',
+        ];
+        $avg = $property->averageRating();
+        $reviewsCount = $property->reviews->count();
+        if ($avg && $reviewsCount > 0) {
+            $jsonLd['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $avg,
+                'reviewCount' => $reviewsCount,
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ];
+        }
+    @endphp
+    <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
 
 <script type="text/javascript" src="https://platform-api.sharethis.com/js/sharethis.js#property=66983fa2a88bfa0019b9391d&product=inline-share-buttons&source=platform" async="async"></script>
 

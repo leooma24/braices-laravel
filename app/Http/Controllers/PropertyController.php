@@ -18,6 +18,7 @@ use App\Models\Suburb;
 use App\Models\User;
 
 use App\Helpers\SlugHelper;
+use App\Services\AIDescriptionService;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,9 @@ class PropertyController extends Controller
         if (!empty($data['precio_maximo'])) {
             $list->where('price', '<=', $data['precio_maximo']);
         }
+        // Featured primero, despues por id desc (mas recientes)
+        $list->orderByDesc('is_featured')
+            ->orderByDesc('id');
         $list = $list->paginate($request->get('per_page', 15));
 
         $types = PropertyTypeModel::all();
@@ -294,6 +298,84 @@ class PropertyController extends Controller
 
         $image->delete();
         return redirect(route('properties.edit', $property->slug))->with('success', 'La Imagen ha sido eliminada');
+    }
+
+    /**
+     * Genera una descripción AI vía Claude basada en los datos del formulario.
+     */
+    public function aiDescription(Request $request, AIDescriptionService $ai)
+    {
+        if (!filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN)) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'suburb' => ['nullable', 'string', 'max:100'],
+            'bedrooms' => ['nullable', 'integer', 'min:0', 'max:50'],
+            'bathrooms' => ['nullable', 'numeric', 'min:0', 'max:50'],
+            'square_feet' => ['nullable', 'numeric', 'min:0'],
+            'lot_size' => ['nullable', 'numeric', 'min:0'],
+            'year_built' => ['nullable', 'integer'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'levels' => ['nullable', 'integer'],
+            'front' => ['nullable', 'numeric'],
+            'depth' => ['nullable', 'numeric'],
+            'transaction' => ['nullable', 'string'],
+            'property_types' => ['nullable', 'array'],
+            'property_types.*' => ['string'],
+            'is_reservable' => ['nullable', 'boolean'],
+            'max_guests' => ['nullable', 'integer'],
+            'price_per_night' => ['nullable', 'numeric'],
+        ]);
+
+        $hasContent = collect($data)->filter(fn ($v) => !is_null($v) && $v !== '' && $v !== [])->count() >= 3;
+        if (!$hasContent) {
+            return response()->json([
+                'error' => 'Captura al menos algunos datos básicos (título, ubicación, tipo) antes de generar la descripción.',
+            ], 422);
+        }
+
+        try {
+            $description = $ai->generate($data);
+            return response()->json(['description' => $description]);
+        } catch (\Throwable $e) {
+            \Log::error('AI description failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'error' => 'No se pudo generar la descripción: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Activa o desactiva el destacado de una propiedad por 30 días.
+     * Solo el dueño puede hacerlo. La monetización (paquetes con
+     * featured_listings remaining) se puede agregar después.
+     */
+    public function toggleFeatured($slug)
+    {
+        $property = Property::where('slug', $slug)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if ($property->isFeaturedNow()) {
+            $property->forceFill([
+                'is_featured' => false,
+                'featured_until' => null,
+            ])->save();
+            return redirect()->route('myProperties')
+                ->with('success', 'Destacado desactivado.');
+        }
+
+        $property->forceFill([
+            'is_featured' => true,
+            'featured_until' => now()->addDays(30),
+        ])->save();
+        return redirect()->route('myProperties')
+            ->with('success', '¡Tu propiedad quedó destacada por 30 días!');
     }
 
     public function destroy($id)

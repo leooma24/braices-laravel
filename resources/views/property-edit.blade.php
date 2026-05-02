@@ -355,6 +355,13 @@
                                       </div>
 
                                       <div class="col-xs-12 col-md-6">
+                                        @if(filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN))
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <button type="button" id="aiDescriptionBtn" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-magic me-1"></i>Generar con IA
+                                                </button>
+                                            </div>
+                                        @endif
                                         <div class="form-floating mb-3">
                                             <textarea style="min-height:200px;" name="description" class="form-control @error('description') {{ 'is-invalid' }} @enderror" id="description"
                                                 aria-describedby="invalidDescription"
@@ -579,6 +586,51 @@
                 $('#property_type_id').change();
                 $('#state').change();
                 $('#zip').blur();
+
+                @if(filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN))
+                $('#aiDescriptionBtn').on('click', function () {
+                    const $btn = $(this);
+                    const original = $btn.html();
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Generando...');
+
+                    const propertyTypeNames = $('#property_type_id option:selected').map(function () {
+                        return $(this).text().trim();
+                    }).get();
+
+                    const transactionName = $('#transaction_type_id option:selected').text().trim();
+
+                    $.ajax({
+                        url: '{{ route('api.properties.ai_description') }}',
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': $('meta[name=csrf-token]').attr('content') },
+                        data: {
+                            title: $('#title').val(),
+                            address: $('#address').val(),
+                            city: $('#city').val(),
+                            bedrooms: $('#bedrooms').val(),
+                            bathrooms: $('#bathrooms').val(),
+                            square_feet: $('#square_feet').val(),
+                            year_built: $('#year_built').val(),
+                            price: $('#price').val().replace(/,/g, ''),
+                            property_types: propertyTypeNames,
+                            transaction: transactionName,
+                            front: $('#front').val(),
+                            depth: $('#depth').val(),
+                            levels: $('#levels').val(),
+                        },
+                        success: function (response) {
+                            $('#description').val(response.description);
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON?.error || 'No se pudo generar la descripción.';
+                            alert(msg);
+                        },
+                        complete: function () {
+                            $btn.prop('disabled', false).html(original);
+                        }
+                    });
+                });
+                @endif
             });
         </script>
 

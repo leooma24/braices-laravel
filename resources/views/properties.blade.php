@@ -59,10 +59,16 @@
         <div class="row g-4 mt-2 mb-2">
             @foreach ($list as $property)
                 <div class="col-12 col-md-6 col-lg-4">
-                    <article class="card h-100 position-relative">
+                    <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }}">
                         <a href="{{ route('property', $property->slug) }}" class="d-block">
                             <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy">
                         </a>
+
+                        @if($property->isFeaturedNow())
+                            <span class="badge featured-badge position-absolute top-0 end-0 m-3">
+                                <i class="fas fa-star me-1"></i>Destacada
+                            </span>
+                        @endif
 
                         <div class="types position-absolute top-0 start-0 m-3 d-flex flex-wrap gap-2">
                             @foreach($property->propertyTypes as $propertyType)

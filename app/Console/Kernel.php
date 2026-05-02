@@ -23,6 +23,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('reservations:request-reviews')
             ->dailyAt('10:00')
             ->withoutOverlapping();
+
+        $schedule->command('sitemap:generate')
+            ->dailyAt('04:00')
+            ->withoutOverlapping();
     }
 
     /**

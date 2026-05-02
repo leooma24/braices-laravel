@@ -48,6 +48,11 @@ Route::get('home', function () {
 Route::get('login/facebook', [FacebookController::class, 'login'])->name('login.facebook');
 Route::get('login/facebook/callback', [FacebookController::class, 'callback']);
 
+Route::get('/robots.txt', function () {
+    $content = "User-agent: *\nAllow: /\nDisallow: /administrador/\nDisallow: /cuenta/\nDisallow: /reservaciones/retorno\nDisallow: /api/\n\nSitemap: " . url('/sitemap.xml') . "\n";
+    return response($content, 200)->header('Content-Type', 'text/plain');
+});
+
 Route::get('/propiedad/{slug}/reservar', [ReservationController::class, 'show'])->name('reservation.show');
 Route::post('/api/reservations/quote', [ReservationController::class, 'quote'])->name('api.reservations.quote');
 Route::get('/api/properties/{property}/availability', [ReservationController::class, 'availability'])->name('api.properties.availability');
@@ -73,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/propiedad/{id}/guardar', [PropertyController::class, 'saveProperty'])->name('property.save')->middleware('validate.property');
     Route::post('/propiedad/guardar', [PropertyController::class, 'create'])->name('property.save.new')->middleware('validate.property');
     Route::delete('/propiedad/{slug}/eliminar', [PropertyController::class, 'destroy'])->name('properties.destroy');
+    Route::post('/propiedad/{slug}/destacar', [PropertyController::class, 'toggleFeatured'])->name('properties.feature');
+    Route::post('/api/properties/ai-description', [PropertyController::class, 'aiDescription'])->name('api.properties.ai_description');
 
     Route::post('/pagos/paypal', [PaypalController::class, 'pay'])->name('paypal.pay');
 

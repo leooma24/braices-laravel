@@ -49,6 +49,23 @@ class Property extends Model
         'check_out_time',
     ];
 
+    protected $casts = [
+        'is_reservable' => 'boolean',
+        'is_featured' => 'boolean',
+        'featured_until' => 'datetime',
+    ];
+
+    public function isFeaturedNow(): bool
+    {
+        if (!$this->is_featured) {
+            return false;
+        }
+        if (!$this->featured_until) {
+            return true; // featured indefinido (admin sin fecha)
+        }
+        return $this->featured_until->isFuture();
+    }
+
     /**
      * The table associated with the model.
      *

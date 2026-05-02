@@ -523,6 +523,24 @@ footer .nav-link:hover {
    ============================================================= */
 .text-dots { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
+/* Featured listings */
+.card-featured {
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 4px 12px rgba(255, 127, 80, 0.18);
+}
+.card-featured:hover {
+    box-shadow: 0 12px 28px rgba(255, 127, 80, 0.25), var(--shadow-md);
+}
+.featured-badge {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    backdrop-filter: none;
+    border: 0;
+    padding: 0.45rem 0.85rem !important;
+}
+
 /* CTA banner (footer pre-section for guests) */
 .cta-banner {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);

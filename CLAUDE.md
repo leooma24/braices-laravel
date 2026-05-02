@@ -97,6 +97,22 @@ Two providers wired in: `PaypalController` (auth-only `/pagos/paypal` route) and
 - Image uploads land in `public/images/`. The repo has a `public/.gitignore` (untracked) that, if committed as `*` + `!.gitignore`, would block all future tracked files in `public/` — be careful when staging it.
 - Many routes are duplicated by accident in `web.php` (e.g., `/propiedad/{slug}` is registered twice). Don't add a third — fix the duplicate if you touch the area.
 
+## Feature flags
+
+- `AI_DESCRIPTIONS_ENABLED=true|false` (default `false`) — gatea el botón "Generar con IA" en property-edit y el endpoint `POST /api/properties/ai-description`. Cuando está apagado, el endpoint retorna 404 y el botón no se renderiza. Para activarlo, también requiere `ANTHROPIC_API_KEY` en `.env`. El service vive en `app/Services/AIDescriptionService.php` (Anthropic SDK PHP, modelo `claude-opus-4-7`).
+
+## SEO
+
+- `GET /robots.txt` se sirve vía ruta dinámica en `routes/web.php` (apunta a `url('/sitemap.xml')` con APP_URL real).
+- `php artisan sitemap:generate` genera `public/sitemap.xml` con páginas estáticas + propiedades activas. Schedule diario a las 04:00 en `Console/Kernel`.
+- Cada `/propiedad/{slug}` incluye JSON-LD (`RealEstateListing` o `Accommodation` con `aggregateRating` cuando hay reviews).
+
+## Featured listings
+
+- Campos `is_featured` (bool) y `featured_until` (datetime) en `properties` — **no están en `$fillable`** intencionalmente. Para tocarlos hay que usar `$property->forceFill([...])->save()`. El método `isFeaturedNow()` valida ambos.
+- En `/propiedades` las destacadas se ordenan primero. La card recibe la clase `.card-featured` con borde coral y badge "Destacada".
+- Endpoint `POST /propiedad/{slug}/destacar` (auth + dueño) toggle de 30 días.
+
 ## Gotchas
 
 - `Property::isLand()` and `propertyTypes` cause N+1 if iterated without eager loading. Use `Property::with(['propertyTypes', 'status'])` in list queries.

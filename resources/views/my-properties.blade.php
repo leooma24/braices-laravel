@@ -62,6 +62,21 @@
                                         class="btn btn-primary rounded-circle btn-sm" title="Ver">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @if($property->isFeaturedNow())
+                                            <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-warning rounded-circle btn-sm" title="Quitar destacado">
+                                                    <i class="fas fa-star"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-outline-warning rounded-circle btn-sm" title="Destacar 30 días">
+                                                    <i class="far fa-star"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                         @if($property->is_reservable)
                                             <a href="{{ route('host.calendar', $property->slug) }}"
                                             class="btn btn-info rounded-circle btn-sm text-white" title="Calendario">
