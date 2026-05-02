@@ -57,16 +57,22 @@
                                 <td>{{ $property->description }}</td>
                                 <td>${{ number_format($property->price) }}</td>
                                 <td>
-                                    <div class="d-flex justify-content-between">
+                                    <div class="d-flex justify-content-between gap-1">
                                         <a href="{{ route('property', $property->slug) }}"
-                                        class="btn btn-primary rounded-circle btn-sm">
+                                        class="btn btn-primary rounded-circle btn-sm" title="Ver">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @if($property->is_reservable)
+                                            <a href="{{ route('host.calendar', $property->slug) }}"
+                                            class="btn btn-info rounded-circle btn-sm text-white" title="Calendario">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </a>
+                                        @endif
                                         <a href="{{ route('properties.edit', $property->slug) }}"
-                                        class="btn btn-secondary rounded-circle btn-sm">
+                                        class="btn btn-secondary rounded-circle btn-sm" title="Editar">
                                             <i class="fas fa-edit text-white"></i>
                                         </a>
-                                        <button class="btn btn-danger rounded-circle btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $property->id }}">
+                                        <button class="btn btn-danger rounded-circle btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $property->id }}" title="Eliminar">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>

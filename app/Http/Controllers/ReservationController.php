@@ -349,7 +349,7 @@ class ReservationController extends Controller
 
     public function myReservations()
     {
-        $reservations = Reservation::with('property')
+        $reservations = Reservation::with(['property', 'review'])
             ->where('user_id', Auth::id())
             ->orderByDesc('check_in_date')
             ->paginate(15);
@@ -365,5 +365,93 @@ class ReservationController extends Controller
             ->paginate(15);
 
         return view('host-reservations', compact('reservations'));
+    }
+
+    /**
+     * Calendario para que el anfitrión vea y administre la disponibilidad
+     * de una de sus propiedades.
+     */
+    public function hostCalendar(string $slug)
+    {
+        $property = Property::where('slug', $slug)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $rangeStart = now()->toDateString();
+        $rangeEnd = now()->addMonths(6)->toDateString();
+        $blockedDates = $this->availability->blockedDates($property, $rangeStart, $rangeEnd);
+
+        $reservations = $property->reservations()
+            ->blocking()
+            ->where('check_out_date', '>=', $rangeStart)
+            ->orderBy('check_in_date')
+            ->with('user')
+            ->get();
+
+        return view('host-calendar', compact('property', 'blockedDates', 'reservations', 'rangeStart', 'rangeEnd'));
+    }
+
+    /**
+     * Bloquear/liberar un rango de fechas (solo el anfitrión de la propiedad).
+     * Body: { from: 'Y-m-d', to: 'Y-m-d', action: 'block'|'unblock' }
+     */
+    public function hostUpdateAvailability(string $slug, Request $request): JsonResponse
+    {
+        $property = Property::where('slug', $slug)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $data = $request->validate([
+            'from' => ['required', 'date'],
+            'to' => ['required', 'date', 'after_or_equal:from'],
+            'action' => ['required', 'in:block,unblock'],
+        ]);
+
+        if ($data['action'] === 'block') {
+            $this->availability->block($property, $data['from'], $data['to']);
+        } else {
+            $this->availability->unblock($property, $data['from'], $data['to']);
+        }
+
+        $blockedDates = $this->availability->blockedDates(
+            $property,
+            now()->toDateString(),
+            now()->addMonths(6)->toDateString(),
+        );
+
+        return response()->json([
+            'ok' => true,
+            'blocked' => $blockedDates,
+        ]);
+    }
+
+    /**
+     * Crear review de una reservación completada.
+     */
+    public function storeReview(Reservation $reservation, Request $request)
+    {
+        $this->authorizeOwner($reservation);
+
+        if ($reservation->status !== ReservationStatus::Completada) {
+            return redirect()->back()->with('error', 'Solo puedes reseñar reservaciones completadas.');
+        }
+
+        if ($reservation->review()->exists()) {
+            return redirect()->back()->with('error', 'Ya enviaste una reseña para esta estadía.');
+        }
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        $reservation->review()->create([
+            'property_id' => $reservation->property_id,
+            'user_id' => $reservation->user_id,
+            'rating' => $data['rating'],
+            'comment' => $data['comment'],
+        ]);
+
+        return redirect()->route('my.reservations')->with('success', '¡Gracias por tu reseña!');
     }
 }

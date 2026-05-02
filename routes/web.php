@@ -79,8 +79,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/reservaciones', [ReservationController::class, 'store'])->name('reservation.store');
     Route::get('/reservaciones/{reservation}/checkout', [ReservationController::class, 'checkout'])->name('reservation.checkout');
     Route::post('/reservaciones/{reservation}/cancelar', [ReservationController::class, 'cancel'])->name('reservation.cancel');
+    Route::post('/reservaciones/{reservation}/review', [ReservationController::class, 'storeReview'])->name('reservation.review.store');
     Route::get('/cuenta/mis-reservaciones', [ReservationController::class, 'myReservations'])->name('my.reservations');
     Route::get('/cuenta/reservas-recibidas', [ReservationController::class, 'hostReservations'])->name('host.reservations');
+    Route::get('/cuenta/propiedad/{slug}/calendario', [ReservationController::class, 'hostCalendar'])->name('host.calendar');
+    Route::post('/cuenta/propiedad/{slug}/calendario/disponibilidad', [ReservationController::class, 'hostUpdateAvailability'])->name('host.calendar.update');
 });
 
 Route::get('/cuenta/salir', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

@@ -15,6 +15,14 @@ class Kernel extends ConsoleKernel
         $schedule->command('reservations:release-expired')
             ->everyFiveMinutes()
             ->withoutOverlapping();
+
+        $schedule->command('reservations:complete-past')
+            ->dailyAt('03:00')
+            ->withoutOverlapping();
+
+        $schedule->command('reservations:request-reviews')
+            ->dailyAt('10:00')
+            ->withoutOverlapping();
     }
 
     /**

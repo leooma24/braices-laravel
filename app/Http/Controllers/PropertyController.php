@@ -130,7 +130,7 @@ class PropertyController extends Controller
     {
         $qrCode = QrCode::size(150)
             ->generate(URL::to('/') . '/propiedad/' . $id);
-        $property = Property::with(['propertyTypes', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName'])->where('slug', $id)->first();
+        $property = Property::with(['propertyTypes', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName', 'reviews.user'])->where('slug', $id)->first();
 
         $property->increment('views');
 
@@ -141,7 +141,7 @@ class PropertyController extends Controller
     {
         $qrCode = QrCode::size(150)
             ->generate(URL::to('/') . '/propiedades/' . $slugUser . '/propiedad/' . $slugProperty);
-        $property = Property::with(['type', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName'])->where('slug', $slugProperty)->first();
+        $property = Property::with(['type', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName', 'reviews.user'])->where('slug', $slugProperty)->first();
 
         $property->increment('views');
 

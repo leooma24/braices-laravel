@@ -174,6 +174,30 @@
             </div>
             @endif
 
+            @php $avg = $property->averageRating(); @endphp
+            @if($property->reviews->isNotEmpty())
+                <div class="card mb-3 border-1 bg-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline mb-3">
+                            <h4 class="mt-1 mb-0"><strong>Reseñas</strong></h4>
+                            @if($avg)
+                                <span><i class="fa fa-star text-warning"></i> <strong>{{ $avg }}</strong> <span class="text-muted">({{ $property->reviews->count() }})</span></span>
+                            @endif
+                        </div>
+                        @foreach($property->reviews->sortByDesc('created_at')->take(10) as $review)
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>{{ $review->user->name }}</strong>
+                                    <span>{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
+                                </div>
+                                <small class="text-muted">{{ $review->created_at->format('d/m/Y') }}</small>
+                                <p class="mb-0 mt-1">{{ $review->comment }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="card mb-3 border-1 bg-white">
                 <div class="card-body">
                     <h4 class="mt-1"><strong>Compartir</strong></h4>
