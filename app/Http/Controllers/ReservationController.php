@@ -204,7 +204,16 @@ class ReservationController extends Controller
         );
 
         if (empty($payment->external_reference)) {
-            $preferenceId = $this->createMpPreference($reservation);
+            try {
+                $preferenceId = $this->createMpPreference($reservation);
+            } catch (\Throwable $e) {
+                Log::error('MercadoPago preference creation failed', [
+                    'reservation_id' => $reservation->id,
+                    'error' => $e->getMessage(),
+                ]);
+                return redirect()->route('my.reservations')
+                    ->with('error', 'No se pudo iniciar el cobro. Verifica las credenciales de MercadoPago e intenta más tarde.');
+            }
             $payment->update(['external_reference' => $preferenceId]);
         }
 
@@ -307,7 +316,11 @@ class ReservationController extends Controller
 
     private function createMpPreference(Reservation $reservation): string
     {
-        $reservation->loadMissing('property');
+        if (!env('MERCADO_PAGO_ACCESS_TOKEN')) {
+            throw new \RuntimeException('MERCADO_PAGO_ACCESS_TOKEN no está configurado.');
+        }
+
+        $reservation->loadMissing('property', 'user');
         $preference = new Preference();
 
         $item = new Item();
@@ -323,13 +336,26 @@ class ReservationController extends Controller
             'failure' => route('reservation.payment.return'),
             'pending' => route('reservation.payment.return'),
         ];
-        $preference->auto_return = 'approved';
+
+        // auto_return solo es seguro en HTTPS publico. En dev (http://*.test, localhost)
+        // MP rechaza la preferencia y deja id en null. Solo lo activamos en URLs https.
+        if (str_starts_with(url('/'), 'https://')) {
+            $preference->auto_return = 'approved';
+        }
 
         $payer = new Payer();
-        $payer->email = $reservation->user?->email;
+        if ($reservation->user?->email) {
+            $payer->email = $reservation->user->email;
+        }
         $preference->payer = $payer;
 
-        $preference->save();
+        $saved = $preference->save();
+
+        if (!$saved || empty($preference->id)) {
+            $error = $preference->error?->message ?? 'desconocido';
+            $cause = json_encode($preference->error?->causes ?? []);
+            throw new \RuntimeException("MercadoPago rechazó la preferencia: {$error}. Causes: {$cause}");
+        }
 
         return $preference->id;
     }
