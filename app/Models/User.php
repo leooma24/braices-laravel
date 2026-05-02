@@ -66,4 +66,28 @@ class User extends Authenticatable implements  MustVerifyEmail
     {
         return $this->hasMany(Property::class);
     }
+
+    /** Reservaciones que el usuario hizo como huésped. */
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /** Reservaciones recibidas en propiedades del usuario (anfitrión). */
+    public function hostReservations()
+    {
+        return $this->hasManyThrough(
+            Reservation::class,
+            Property::class,
+            'user_id',      // FK en properties → users
+            'property_id',  // FK en reservations → properties
+            'id',
+            'id'
+        );
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 }

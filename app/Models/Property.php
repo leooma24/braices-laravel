@@ -136,4 +136,30 @@ class Property extends Model
     {
         return $this->hasMany(PropertyAvailability::class);
     }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function pricing()
+    {
+        return $this->hasMany(Pricing::class);
+    }
+
+    public function rules()
+    {
+        return $this->hasMany(PropertyRule::class);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function averageRating(): ?float
+    {
+        $avg = $this->reviews()->avg('rating');
+        return $avg ? round((float) $avg, 1) : null;
+    }
 }
