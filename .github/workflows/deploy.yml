@@ -1,11 +1,6 @@
 name: Deploy to FTP
 
-# IMPORTANTE: el deploy es SOLO manual.
-# `push: master` está deshabilitado a propósito para que cambios en el
-# código no disparen deploys automáticos sin antes verificar que las
-# migraciones corren OK. Para disparar el deploy:
-#   gh workflow run deploy.yml --ref master
-# o desde GitHub UI: Actions tab -> "Deploy to FTP" -> "Run workflow".
+# Trigger SOLO manual.
 on:
   workflow_dispatch:
 
@@ -25,10 +20,6 @@ jobs:
           coverage: none
 
       - name: Stub .env mínimo para el build
-        # DEBE correr ANTES de composer install: el post-autoload-dump
-        # ejecuta `artisan package:discover` que necesita .env. El .env
-        # real vive en el servidor y NUNCA se sobreescribe por el deploy
-        # (está en el exclude del FTP sync).
         run: |
           cat > .env <<'EOF'
           APP_NAME=BienesCorp
@@ -41,8 +32,6 @@ jobs:
           CACHE_DRIVER=file
           SESSION_DRIVER=file
           QUEUE_CONNECTION=sync
-          MERCADO_PAGO_ACCESS_TOKEN=stub
-          MERCADO_PAGO_PUBLIC_KEY=stub
           EOF
 
       - name: Cache de Composer
@@ -56,77 +45,102 @@ jobs:
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
       - name: Validar que la app compila
-        # Sanity check: si artisan revienta aquí, el deploy se detiene
-        # ANTES de tocar FTP — el sitio en prod no se ve afectado.
-        # Solo verificamos que Laravel bootea y los caches se limpian;
-        # NO usamos route:list aquí porque puede fallar si un ServiceProvider
-        # condicional (Telescope, Sentry stub, etc.) tiene side effects al
-        # registrar rutas. El runtime real corre con el .env de prod en el
-        # servidor, no con el stub de CI.
         run: |
           php artisan config:clear
           php artisan view:clear
           php artisan --version
 
-      - name: Eliminar archivos que NO deben subirse
+      - name: Limpiar archivos que NO van al zip
         run: |
           rm -f .env
-          rm -rf .git .github tests
-          rm -rf .playwright-mcp
-          rm -f phpunit.xml
-          rm -f .editorconfig
+          rm -rf .git .github tests .playwright-mcp
+          rm -f phpunit.xml .editorconfig .env.example
+          rm -rf node_modules
+          # storage/logs/* etc se quedan; los excluimos en el zip
 
-      - name: Modo mantenimiento ON (antes de tocar FTP)
-        # Pone el sitio en 503 mientras hacemos el sync + migrate + cache.
-        # Si el deploy falla, el sitio queda en mantenimiento hasta que
-        # corras `/deploy/run?action=up` manualmente. Mejor eso que medio
-        # roto.
+      - name: Crear deploy.zip
+        # Un solo archivo en vez de 10,215 archivos uno por uno.
+        # Excluye contenidos volátiles (storage cache/logs/sessions,
+        # public/images/, public/photo-user/) que deben permanecer
+        # intactos en el servidor.
+        run: |
+          zip -rq deploy.zip . \
+            -x "storage/app/*" \
+            -x "storage/framework/cache/data/*" \
+            -x "storage/framework/sessions/*" \
+            -x "storage/framework/views/*" \
+            -x "storage/logs/*" \
+            -x "public/images/*" \
+            -x "public/photo-user/*" \
+            -x "bootstrap/cache/*.php"
+          ls -lh deploy.zip
+          echo "Files in zip: $(unzip -l deploy.zip | tail -1)"
+
+      - name: Modo mantenimiento ON (antes de tocar prod)
+        # Best-effort: intenta poner mantenimiento si el endpoint ya existe
+        # (en deploys posteriores al primero). En el primer deploy, /deploy/run
+        # no existe en prod aún → 404 → warning, continuamos.
         env:
           APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            echo "Secrets no configurados — skip maintenance ON."
+            echo "::warning::Secrets faltan — saltando mantenimiento ON."
             exit 0
           fi
-          code=$(curl -s -o /tmp/out -w "%{http_code}" "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=down" || echo "000")
+          code=$(curl -s -o /tmp/out -w "%{http_code}" \
+            "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=down" || echo "000")
           echo "down: HTTP ${code}"
           cat /tmp/out 2>/dev/null || true
-          if [ "$code" = "503" ]; then
-            echo "::warning::Endpoint deshabilitado en prod (DEPLOY_TOKEN no está en el .env del servidor). Continuamos SIN modo mantenimiento."
-          elif [ "$code" != "200" ]; then
-            echo "::warning::No se pudo poner mantenimiento (HTTP ${code}). Continuamos pero monitorea el sitio durante el sync."
+
+      - name: Subir deploy.zip + _first_deploy.php vía FTP
+        # Curl directo: UN archivo grande, no 10K archivos. Esto sí pasa
+        # el firewall (probado manualmente desde el sandbox).
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          set -e
+          DIR="${FTP_REMOTE_DIR%/}"
+
+          echo "→ Subiendo _first_deploy.php"
+          curl -sS --fail --connect-timeout 30 --max-time 60 \
+            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+            -T public/_first_deploy.php \
+            "ftp://${FTP_HOST}${DIR}/_first_deploy.php"
+
+          echo "→ Subiendo deploy.zip ($(stat -c%s deploy.zip 2>/dev/null || wc -c < deploy.zip) bytes)"
+          curl -sS --fail --connect-timeout 30 --max-time 600 \
+            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+            -T deploy.zip \
+            "ftp://${FTP_HOST}${DIR}/_deploy.zip"
+
+          echo "→ Verificando que llegaron"
+          curl -sS --connect-timeout 15 \
+            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+            "ftp://${FTP_HOST}${DIR}/" --list-only \
+            | grep -E "_deploy.zip|_first_deploy.php" || \
+            (echo "::error::Los archivos no aparecen en el servidor"; exit 1)
+
+      - name: Ejecutar extractor PHP vía HTTP
+        env:
+          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          set -e
+          echo "→ Llamando _first_deploy.php para extraer"
+          code=$(curl -sS -o /tmp/out -w "%{http_code}" --max-time 300 \
+            "${APP_DEPLOY_URL}/_first_deploy.php?token=${DEPLOY_TOKEN}" || echo "000")
+          echo "HTTP ${code}"
+          cat /tmp/out
+          if [ "$code" != "200" ]; then
+            echo "::error::Extracción falló (HTTP ${code})"
+            exit 1
           fi
 
-      - name: Sync vía FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
-          # Deja intactos en el servidor estos archivos/dirs (no se sobreescriben):
-          exclude: |
-            **/.env
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/storage/app/**
-            **/storage/framework/cache/data/**
-            **/storage/framework/sessions/**
-            **/storage/logs/**
-            **/public/images/**
-            **/public/photo-user/**
-          log-level: standard
-          dangerous-clean-slate: false
-
-      - name: Limpiar manifest cache de Laravel (post-FTP, pre-/deploy/run)
-        # FTP sync sube el código nuevo, pero deja intacto
-        # `bootstrap/cache/services.php` y `packages.php` con el manifest
-        # de providers del código VIEJO. Si Laravel arranca con esos
-        # caches estales puede 500 si los providers nuevos no están
-        # registrados. Solución: borrarlos vía FTP DELETE para que Laravel
-        # los regenere en el próximo request (que será el siguiente step).
+      - name: Limpiar manifest cache de Laravel
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
@@ -139,89 +153,58 @@ jobs:
               -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
               -Q "-DELE ${DIR}/${f}" \
               "ftp://${FTP_HOST}/" > /dev/null 2>&1 || true
-            echo "delete ${DIR}/${f}: best-effort"
           done
-          echo "Manifest cache limpiado — Laravel regenerará en el siguiente request."
+          echo "Manifest cache limpiado."
 
-      - name: Disparar /deploy/run en producción (cache + migraciones)
-        # GitHub Actions no permite `secrets.X != ''` en `if:`, así que
-        # exponemos los secrets como env vars y validamos en bash.
-        #
-        # Manejo gradual:
-        #  - Secrets faltantes en GH → warning + exit 0 (FTP sync ya pasó)
-        #  - /deploy/run responde 503 → el .env de prod aún no tiene
-        #    DEPLOY_TOKEN; warning + exit 0 (FTP sync ya pasó, ejecuta
-        #    el migrate manual o configura el token y vuelve a disparar)
-        #  - /deploy/run responde 403 → token configurado pero no coincide;
-        #    error real
-        #  - Cualquier otro código de error → error real
+      - name: Disparar migrate + cache vía /deploy/run
         env:
           APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           set -e
           if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            echo "::warning::APP_DEPLOY_URL o DEPLOY_TOKEN no configurados en GitHub Secrets — saltando migrate/cache. El FTP sync ya completó."
+            echo "::warning::Secrets faltan — saltando migrate/cache."
             exit 0
           fi
 
           probe() {
-            curl -sS -o /tmp/deploy_body -w "%{http_code}" \
+            curl -sS -o /tmp/out -w "%{http_code}" --max-time 60 \
               "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=$1" || echo "000"
           }
 
           echo "→ status"
           status_code=$(probe status)
           echo "HTTP ${status_code}"
-          cat /tmp/deploy_body || true
-          echo ""
+          cat /tmp/out
 
-          if [ "$status_code" = "503" ]; then
-            echo "::warning::/deploy/run deshabilitado en prod (DEPLOY_TOKEN falta en el .env del servidor). FTP sync OK; corre las migraciones manualmente vía phpMyAdmin o sube el DEPLOY_TOKEN al .env de prod por FTP y vuelve a disparar el workflow."
-            exit 0
-          fi
           if [ "$status_code" != "200" ]; then
-            echo "::error::/deploy/run?action=status devolvió HTTP ${status_code}. Aborto."
+            echo "::error::status devolvió ${status_code}"
             exit 1
           fi
 
+          echo ""
           echo "→ migrate"
-          migrate_code=$(probe migrate)
-          echo "HTTP ${migrate_code}"
-          cat /tmp/deploy_body || true
-          echo ""
-          if [ "$migrate_code" != "200" ]; then
-            echo "::error::migrate devolvió HTTP ${migrate_code}. Aborto."
-            exit 1
-          fi
+          c=$(probe migrate); echo "HTTP ${c}"; cat /tmp/out
+          [ "$c" = "200" ] || { echo "::error::migrate ${c}"; exit 1; }
 
+          echo ""
           echo "→ cache"
-          cache_code=$(probe cache)
-          echo "HTTP ${cache_code}"
-          cat /tmp/deploy_body || true
-          echo ""
-          if [ "$cache_code" != "200" ]; then
-            echo "::error::cache devolvió HTTP ${cache_code}. Aborto."
-            exit 1
-          fi
+          c=$(probe cache); echo "HTTP ${c}"; cat /tmp/out
+          [ "$c" = "200" ] || { echo "::error::cache ${c}"; exit 1; }
 
+          echo ""
           echo "Deploy completado."
 
-      - name: Modo mantenimiento OFF
-        # Siempre corre, incluso si pasos anteriores fallaron, para que
-        # el sitio no quede atorado en 503.
+      - name: Modo mantenimiento OFF (siempre)
         if: always()
         env:
           APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            echo "Secrets no configurados — skip maintenance OFF."
             exit 0
           fi
-          code=$(curl -s -o /tmp/out -w "%{http_code}" "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=up" || echo "000")
+          code=$(curl -s -o /tmp/out -w "%{http_code}" --max-time 30 \
+            "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=up" || echo "000")
           echo "up: HTTP ${code}"
           cat /tmp/out 2>/dev/null || true
-          if [ "$code" != "200" ] && [ "$code" != "503" ]; then
-            echo "::warning::No se pudo desactivar mantenimiento. Si el sitio está en 503, llama manualmente: ${APP_DEPLOY_URL}/deploy/run?token=...&action=up"
-          fi
