@@ -12,6 +12,9 @@ class PreventRequestsDuringMaintenance extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // El endpoint de deploy DEBE seguir activo en mantenimiento, si no
+        // queda atascado el ciclo "down → migrate → up" del workflow.
+        'deploy/run',
+        'deploy/run/*',
     ];
 }
