@@ -1,9 +1,13 @@
 name: Deploy to FTP
 
+# IMPORTANTE: el deploy es SOLO manual.
+# `push: master` está deshabilitado a propósito para que cambios en el
+# código no disparen deploys automáticos sin antes verificar que las
+# migraciones corren OK. Para disparar el deploy:
+#   gh workflow run deploy.yml --ref master
+# o desde GitHub UI: Actions tab -> "Deploy to FTP" -> "Run workflow".
 on:
-  push:
-    branches: [master]
-  workflow_dispatch: # Permite disparar manualmente desde GitHub
+  workflow_dispatch:
 
 jobs:
   deploy:
