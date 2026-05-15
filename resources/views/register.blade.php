@@ -35,6 +35,19 @@
             <form method="POST" action="{{ route('register.post') }}">
                 @csrf
 
+                {{-- Honeypot: invisible para humanos, los bots lo rellenan --}}
+                <div aria-hidden="true" style="position:absolute; left:-9999px; top:-9999px; opacity:0; pointer-events:none;">
+                    <label>No llenar este campo</label>
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                {{-- Timestamp del momento en que la página cargó.
+                     El backend lo usa para rechazar envíos en <2s (bots). --}}
+                <input type="hidden" name="form_loaded_at" id="form_loaded_at" value="0">
+                <script>
+                    document.getElementById('form_loaded_at').value = Date.now();
+                </script>
+
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <div class="form-floating">
