@@ -14,50 +14,70 @@
 
 @section('content')
 
-    <x-top-background>
-        Administrador
-    </x-top-background>
-
     <x-admin-header />
 
     <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="create-user d-flex justify-content-end">
-                    <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">Crear Banner</a>
-                </div>
+        <div class="dashboard-header">
+            <div>
+                <h1>Banners</h1>
+                <p>Banners que aparecen en la portada del sitio.</p>
+            </div>
+            <a href="{{ route('admin.banners.create') }}" class="btn btn-accent btn-lg">
+                <i class="fas fa-plus me-2"></i>Crear banner
+            </a>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="dashboard-card__body p-0">
                 <div class="table-responsive">
-                    <table class="table mt-3">
-                        <thead class="table-dark">
+                    <table class="table mc-table mb-0 align-middle">
+                        <thead>
                             <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Titulo</th>
-                                <th scope="col">Subtitulo</th>
-                                <th scope="col">Posición</th>
-                                <th scope="col" width="70px;">Acciones</th>
+                                <th style="width: 60px;">ID</th>
+                                <th>Título</th>
+                                <th>Subtítulo</th>
+                                <th style="width: 100px;">Posición</th>
+                                <th class="text-end" style="width: 130px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($banners as $banner)
                                 <tr>
-                                    <th scope="row">{{ $banner->id }}</th>
-                                    <td>{{ $banner->title }}</td>
-                                    <td>{{ $banner->subtitle }}</td>
-                                    <td>{{ $banner->position }} </td>
-
+                                    <th scope="row" class="text-muted-2">#{{ $banner->id }}</th>
+                                    <td class="fw-semibold">{{ $banner->title }}</td>
+                                    <td class="text-muted-2">{{ $banner->subtitle }}</td>
+                                    <td><span class="badge" style="background: var(--color-primary-50); color: var(--color-primary-dark);">{{ $banner->position }}</span></td>
                                     <td>
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-end gap-1">
                                             <a href="{{ route('admin.banners.edit', $banner->id) }}"
-                                                class="btn btn-secondary rounded-circle btn-sm">
-                                                <i class="fas fa-edit text-white"></i>
+                                               class="btn btn-outline-primary btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
                                             </a>
-                                            <button class="btn btn-danger ms-2 rounded-circle btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $banner->id }}">
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-id="{{ $banner->id }}" title="Eliminar">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             @endforeach
+
+                            @if($banners->isEmpty())
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state mb-0">
+                                            <div class="empty-state__icon">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                            <h5>Aún no hay banners</h5>
+                                            <a href="{{ route('admin.banners.create') }}" class="btn btn-primary mt-2">
+                                                <i class="fas fa-plus me-2"></i>Crear banner
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>

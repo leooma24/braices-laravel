@@ -9,47 +9,36 @@
 
 @section('content')
 
-    <x-top-background>
-        Paquetes
-    </x-top-background>
+    <x-admin-header />
 
     <div class="container">
-        <div class="row ">
-            @if ($errors->any())
-            <div class="col-xs-12">
-                <div class="alert alert-danger mt-3">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+        <div class="dashboard-header">
+            <div>
+                <h1>{{ isset($package->id) ? 'Editar Paquete' : 'Nuevo Paquete' }}</h1>
+                <p>Define el plan, precio y características visibles a los usuarios.</p>
             </div>
-            @endif
-            @if (session('success'))
-            <div class="col-xs-12">
-                <div class="alert alert-success my-3">
-                    {{ session('success') }}
-                </div>
-            </div>
-            @endif
-            @if (session('error'))
-            <div class="col-xs-12">
-                <div class="alert alert-danger my-3">
-                    {{ session('error') }}
-                </div>
-            </div>
-            @endif
-            <div class="col-md-4 col-xs-12">
+            <a href="{{ route('admin.packages.index') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Paquetes
+            </a>
+        </div>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
+        @endif
 
-            <div class="col-md-8 col-xs-12">
-                <div class="card my-3">
-                    <div class="card-header">
-                        <h3>{{ $package ? 'Editar' : 'Nuevo'  }} Paquete</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__header">
+                        <h2><i class="fas fa-box-open text-primary me-2"></i>Datos del paquete</h2>
                     </div>
-                    <div class="card-body">
+                    <div class="dashboard-card__body">
                         <form action="{{ route('admin.packages.' . (isset($package->id) ? 'save' : 'new'),  $package->id ?? null ) }}" method="POST">
                             @csrf
                             @method('PUT')
@@ -91,17 +80,17 @@
                                 </div>
                             </div>
 
-                            <hr />
-
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            <div class="form-action-bar">
+                                <a href="{{ route('admin.packages.index') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Guardar paquete
+                                </button>
                             </div>
-
                         </form>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>

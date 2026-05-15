@@ -9,65 +9,55 @@
 
 @section('content')
 
-    <x-top-background>
-        Asignar Paquete
-    </x-top-background>
+    <x-admin-header />
 
     <div class="container">
-        <div class="row ">
-            @if ($errors->any())
-            <div class="col-xs-12">
-                <div class="alert alert-danger mt-3">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+        <div class="dashboard-header">
+            <div>
+                <h1>Asignar Paquete</h1>
+                <p>Asigna un paquete a <strong>{{ $user->name }}</strong> ({{ $user->email }}).</p>
             </div>
-            @endif
-            @if (session('success'))
-            <div class="col-xs-12">
-                <div class="alert alert-success my-3">
-                    {{ session('success') }}
-                </div>
-            </div>
-            @endif
-            @if (session('error'))
-            <div class="col-xs-12">
-                <div class="alert alert-danger my-3">
-                    {{ session('error') }}
-                </div>
-            </div>
-            @endif
-            <div class="col-md-4 col-xs-12">
+            <a href="{{ route('admin') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Usuarios
+            </a>
+        </div>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
+        @endif
 
-            <div class="col-md-8 col-xs-12">
-                <div class="card my-3">
-                    <div class="card-header">
-                        <h3>Asignar Paquete</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__header">
+                        <h2><i class="fas fa-box text-primary me-2"></i>Selecciona el paquete</h2>
                     </div>
-                    <div class="card-body">
-
+                    <div class="dashboard-card__body">
                         <form action="{{ route('admin.users.assign.add',  $user->id ) }}" method="POST">
                             @csrf
                             @method('PUT')
 
                             <div class="mb-3">
-                                <x-form-select name="package_id" id="package_id" label="Paquete" :options="$packages" value="{{ $banner->package_id ?? old('package_id') }}" />
+                                <x-form-select name="package_id" id="package_id" label="Paquete" :options="$packages" value="{{ old('package_id') }}" />
                             </div>
 
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Asignar</button>
+                            <div class="form-action-bar">
+                                <a href="{{ route('admin') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-check me-2"></i>Asignar paquete
+                                </button>
                             </div>
-
                         </form>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>

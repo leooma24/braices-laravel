@@ -15,7 +15,14 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $users = User::paginate();
+        // Cargamos el paquete vigente (mayor remaining_listings o más reciente)
+        // junto con roles, para mostrarlos en el panel admin.
+        $users = User::with([
+            'roles',
+            'userPackages' => fn ($q) => $q->orderByDesc('remaining_listings')->orderByDesc('id'),
+            'userPackages.package',
+        ])->paginate(20);
+
         return view('admin', compact('users'));
     }
 

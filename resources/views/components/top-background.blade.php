@@ -1,7 +1,9 @@
-@props(['image', 'eyebrow' => null, 'subtitle' => null])
+@props(['image' => null, 'eyebrow' => null, 'subtitle' => null])
 
-<section class="page-hero">
-    <div class="page-hero__bg" style="background-image: url('{{ asset($image) }}');"></div>
+<section class="page-hero {{ $image ? '' : 'page-hero--gradient' }}">
+    @if($image)
+        <div class="page-hero__bg" style="background-image: url('{{ asset($image) }}');"></div>
+    @endif
     <div class="page-hero__overlay"></div>
     <div class="page-hero__content">
         @if($eyebrow)

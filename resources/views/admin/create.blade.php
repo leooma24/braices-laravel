@@ -9,47 +9,40 @@
 
 @section('content')
 
-    <x-top-background>
-        Perfil
-    </x-top-background>
+    <x-admin-header />
 
     <div class="container">
-        <div class="row ">
-            @if ($errors->any())
-            <div class="col-xs-12">
-                <div class="alert alert-danger mt-3">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+        <div class="dashboard-header">
+            <div>
+                <h1>{{ isset($user->id) ? 'Editar Usuario' : 'Nuevo Usuario' }}</h1>
+                <p>{{ isset($user->id) ? 'Actualiza la información de la cuenta.' : 'Crea una cuenta nueva con su rol asignado.' }}</p>
             </div>
-            @endif
-            @if (session('success'))
-            <div class="col-xs-12">
-                <div class="alert alert-success my-3">
-                    {{ session('success') }}
-                </div>
-            </div>
-            @endif
-            @if (session('error'))
-            <div class="col-xs-12">
-                <div class="alert alert-danger my-3">
-                    {{ session('error') }}
-                </div>
-            </div>
-            @endif
-            <div class="col-md-4 col-xs-12">
+            <a href="{{ route('admin') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Usuarios
+            </a>
+        </div>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="d-flex align-items-start gap-2 mb-2">
+                    <i class="fas fa-exclamation-triangle mt-1"></i>
+                    <strong>Revisa los siguientes campos:</strong>
+                </div>
+                <ul class="mb-0 ps-4">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
+        @endif
 
-            <div class="col-md-8 col-xs-12">
-                <div class="card my-3">
-                    <div class="card-header">
-                        <h3>Perfil</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__header">
+                        <h2><i class="fas fa-user-circle text-primary me-2"></i>Datos del usuario</h2>
                     </div>
-                    <div class="card-body">
+                    <div class="dashboard-card__body">
                         <form action="{{ route('users.' . (isset($user->id) ? 'save' : 'new'),  $user->id ?? null ) }}" method="POST">
                             @csrf
                             @method('PUT')
@@ -197,15 +190,18 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            <div class="form-action-bar">
+                                <a href="{{ route('admin') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>{{ isset($user->id) ? 'Guardar cambios' : 'Crear usuario' }}
+                                </button>
                             </div>
 
                         </form>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>
