@@ -179,16 +179,34 @@ class DeployController extends Controller
                 case 'delete-bot-users':
                     // Borra usuarios sin propiedades que coincidan con señales
                     // de bot. dry_run=1 (default) sólo muestra qué borraría.
+                    // limit (default 500): chunk a procesar — evita timeout en cPanel.
                     $dryRun = $request->query('dry_run', '1') === '1';
+                    $limit = max(1, min(5000, (int) $request->query('limit', 500)));
                     $suspectDomains = ['.ru', '.cn', '.xyz', '.top', '.tk', '.ml', '.ga', '.cf', '.gq'];
 
-                    $orphans = \App\Models\User::query()
+                    set_time_limit(300);
+
+                    // Stream-friendly: identificamos IDs primero (rápido), luego
+                    // borramos por ID en chunks para no tener miles de modelos
+                    // en memoria.
+                    $candidateIds = \App\Models\User::query()
                         ->withCount('properties')
                         ->having('properties_count', '=', 0)
-                        ->get();
+                        ->pluck('id');
 
-                    $toDelete = [];
-                    foreach ($orphans as $u) {
+                    $output = ($dryRun ? "DRY RUN — sin tocar nada\n" : "BORRANDO usuarios sospechosos\n");
+                    $output .= "Candidatos sin propiedades: " . $candidateIds->count() . "\n";
+                    $output .= "Limit por request: {$limit}\n\n";
+
+                    $matched = 0;
+                    $deleted = 0;
+                    $processed = 0;
+
+                    foreach ($candidateIds as $id) {
+                        if ($deleted >= $limit) break;
+
+                        $u = \App\Models\User::find($id);
+                        if (!$u) continue;
                         if ($u->hasRole('admin')) continue;
 
                         $email = strtolower((string) $u->email);
@@ -197,32 +215,28 @@ class DeployController extends Controller
                         foreach ($suspectDomains as $d) {
                             if (str_ends_with($email, $d)) { $isBot = true; break; }
                         }
-                        if (preg_match('/[А-Яа-я\x{4e00}-\x{9fff}]/u', $name)) $isBot = true;
-                        if (preg_match('/^[a-z0-9]{8,}@/', $email)) $isBot = true;
-                        if (preg_match('/^[a-z]+[0-9]{4,}@/', $email) && !$u->phone_number) $isBot = true;
+                        if (!$isBot && preg_match('/[А-Яа-я\x{4e00}-\x{9fff}]/u', $name)) $isBot = true;
+                        if (!$isBot && preg_match('/^[a-z0-9]{8,}@/', $email)) $isBot = true;
+                        if (!$isBot && preg_match('/^[a-z]+[0-9]{4,}@/', $email) && !$u->phone_number) $isBot = true;
 
-                        if ($isBot) $toDelete[] = $u;
-                    }
+                        if (!$isBot) continue;
+                        $matched++;
 
-                    $output = ($dryRun ? "DRY RUN — sin tocar nada\n" : "BORRANDO usuarios sospechosos\n");
-                    $output .= "Total a borrar: " . count($toDelete) . "\n\n";
-
-                    $deleted = 0;
-                    foreach ($toDelete as $u) {
-                        $output .= "  #{$u->id} {$u->name} <{$u->email}>\n";
                         if (!$dryRun) {
-                            // Borrar dependencias primero (FKs)
                             DB::table('user_packages')->where('user_id', $u->id)->delete();
                             $u->roles()->detach();
                             $u->delete();
                             $deleted++;
                         }
+                        $processed++;
                     }
 
-                    if (!$dryRun) {
-                        $output .= "\nBorrados: {$deleted}\n";
+                    if ($dryRun) {
+                        $output .= "Bots detectados en este chunk: {$matched}\n";
+                        $output .= "Para ejecutar de verdad: &dry_run=0\n";
                     } else {
-                        $output .= "\nPara ejecutar de verdad: agrega &dry_run=0\n";
+                        $output .= "Borrados en este chunk: {$deleted}\n";
+                        $output .= "Vuelve a llamar para procesar el siguiente chunk.\n";
                     }
                     break;
 
