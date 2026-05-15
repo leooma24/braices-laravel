@@ -76,23 +76,6 @@ jobs:
           ls -lh deploy.zip
           echo "Files in zip: $(unzip -l deploy.zip | tail -1)"
 
-      - name: Modo mantenimiento ON (antes de tocar prod)
-        # Best-effort: intenta poner mantenimiento si el endpoint ya existe
-        # (en deploys posteriores al primero). En el primer deploy, /deploy/run
-        # no existe en prod aún → 404 → warning, continuamos.
-        env:
-          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-        run: |
-          if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            echo "::warning::Secrets faltan — saltando mantenimiento ON."
-            exit 0
-          fi
-          code=$(curl -s -o /tmp/out -w "%{http_code}" \
-            "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=down" || echo "000")
-          echo "down: HTTP ${code}"
-          cat /tmp/out 2>/dev/null || true
-
       - name: Subir deploy.zip + _first_deploy.php vía FTP
         # Curl directo: UN archivo grande, no 10K archivos. Esto sí pasa
         # el firewall (probado manualmente desde el sandbox).
@@ -222,16 +205,24 @@ jobs:
           echo ""
           echo "Deploy completado."
 
-      - name: Modo mantenimiento OFF (siempre)
+      - name: Cleanup defensivo — borrar marker maintenance via FTP
+        # Si algún ciclo previo dejó el sitio en down y el opcache aún tiene
+        # el middleware viejo (sin whitelist), removemos el marker directo.
+        # Best-effort; no falla el job.
         if: always()
         env:
-          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
-          if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            exit 0
-          fi
-          code=$(curl -s -o /tmp/out -w "%{http_code}" --max-time 30 \
-            "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=up" || echo "000")
-          echo "up: HTTP ${code}"
-          cat /tmp/out 2>/dev/null || true
+          clean() { printf '%s' "$1" | tr -d '[:space:]'; }
+          HOST=$(clean "$FTP_HOST"); USER=$(clean "$FTP_USERNAME"); PASS=$(clean "$FTP_PASSWORD")
+          DIR=$(clean "$FTP_REMOTE_DIR"); DIR="${DIR%/}"; DIR="/${DIR#/}"
+          for f in storage/framework/down storage/framework/maintenance.php; do
+            curl --silent --connect-timeout 10 \
+              -u "${USER}:${PASS}" \
+              -Q "-DELE ${DIR}/${f}" \
+              "ftp://${HOST}/" > /dev/null 2>&1 || true
+          done
+          echo "Maintenance markers cleaned (si existían)."
