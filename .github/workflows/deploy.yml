@@ -120,6 +120,29 @@ jobs:
           log-level: standard
           dangerous-clean-slate: false
 
+      - name: Limpiar manifest cache de Laravel (post-FTP, pre-/deploy/run)
+        # FTP sync sube el código nuevo, pero deja intacto
+        # `bootstrap/cache/services.php` y `packages.php` con el manifest
+        # de providers del código VIEJO. Si Laravel arranca con esos
+        # caches estales puede 500 si los providers nuevos no están
+        # registrados. Solución: borrarlos vía FTP DELETE para que Laravel
+        # los regenere en el próximo request (que será el siguiente step).
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          DIR="${FTP_REMOTE_DIR%/}/bootstrap/cache"
+          for f in services.php packages.php config.php routes-v7.php; do
+            curl --silent --connect-timeout 10 \
+              -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+              -Q "-DELE ${DIR}/${f}" \
+              "ftp://${FTP_HOST}/" > /dev/null 2>&1 || true
+            echo "delete ${DIR}/${f}: best-effort"
+          done
+          echo "Manifest cache limpiado — Laravel regenerará en el siguiente request."
+
       - name: Disparar /deploy/run en producción (cache + migraciones)
         # GitHub Actions no permite `secrets.X != ''` en `if:`, así que
         # exponemos los secrets como env vars y validamos en bash.
