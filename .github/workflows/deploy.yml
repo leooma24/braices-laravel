@@ -77,18 +77,25 @@ jobs:
           dangerous-clean-slate: false
 
       - name: Disparar /deploy/run en producción (cache + migraciones)
-        # Solo si APP_DEPLOY_URL y DEPLOY_TOKEN están configurados como secrets.
-        if: ${{ secrets.APP_DEPLOY_URL != '' && secrets.DEPLOY_TOKEN != '' }}
+        # GitHub Actions no permite `secrets.X != ''` directamente en `if:`,
+        # así que exponemos los secrets como env vars y validamos en bash.
+        # Si APP_DEPLOY_URL o DEPLOY_TOKEN no están configurados, este step
+        # imprime un aviso y termina con éxito (no rompe el deploy).
+        env:
+          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           set -e
-          BASE="${{ secrets.APP_DEPLOY_URL }}"
-          TOKEN="${{ secrets.DEPLOY_TOKEN }}"
+          if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
+            echo "::warning::APP_DEPLOY_URL o DEPLOY_TOKEN no configurados — saltando migrate/cache. Configúralos en GitHub Secrets y en el .env de producción."
+            exit 0
+          fi
 
           echo "→ status"
-          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=status"
+          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=status"
 
           echo "→ migrate"
-          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=migrate"
+          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=migrate"
 
           echo "→ cache"
-          curl -sS --fail "${BASE}/deploy/run?token=${TOKEN}&action=cache"
+          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=cache"
