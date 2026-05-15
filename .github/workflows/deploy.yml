@@ -126,24 +126,28 @@ jobs:
             exit 1
           fi
 
-          echo "→ Subiendo _first_deploy.php"
+          # _first_deploy.php va a /public_html/public/ (DocumentRoot real)
+          # para ser ejecutable vía HTTP. El zip va a /public_html/ (un nivel
+          # arriba, fuera del web root — no se puede descargar vía HTTP).
+          echo "→ Subiendo _first_deploy.php al public/ (web root)"
           curl -sS --fail --connect-timeout 30 --max-time 60 \
             -u "${USER}:${PASS}" \
             -T public/_first_deploy.php \
-            "ftp://${HOST}${DIR}/_first_deploy.php"
+            "ftp://${HOST}${DIR}/public/_first_deploy.php"
 
-          echo "→ Subiendo deploy.zip ($(stat -c%s deploy.zip 2>/dev/null || wc -c < deploy.zip) bytes)"
+          echo "→ Subiendo deploy.zip ($(stat -c%s deploy.zip 2>/dev/null || wc -c < deploy.zip) bytes) al /public_html/"
           curl -sS --fail --connect-timeout 30 --max-time 600 \
             -u "${USER}:${PASS}" \
             -T deploy.zip \
             "ftp://${HOST}${DIR}/_deploy.zip"
 
           echo "→ Verificando que llegaron"
-          curl -sS --connect-timeout 15 \
-            -u "${USER}:${PASS}" \
-            "ftp://${HOST}${DIR}/" --list-only \
-            | grep -E "_deploy.zip|_first_deploy.php" || \
-            (echo "::error::Los archivos no aparecen en el servidor"; exit 1)
+          curl -sS --connect-timeout 15 -u "${USER}:${PASS}" \
+            "ftp://${HOST}${DIR}/" --list-only | grep -E "_deploy.zip" || \
+            (echo "::error::deploy.zip no aparece en ${DIR}"; exit 1)
+          curl -sS --connect-timeout 15 -u "${USER}:${PASS}" \
+            "ftp://${HOST}${DIR}/public/" --list-only | grep -E "_first_deploy.php" || \
+            (echo "::error::_first_deploy.php no aparece en ${DIR}/public"; exit 1)
 
       - name: Ejecutar extractor PHP vía HTTP
         env:

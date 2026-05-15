@@ -52,8 +52,12 @@ if (!class_exists(ZipArchive::class)) {
     exit;
 }
 
-$zipPath = __DIR__ . '/_deploy.zip';
-$extractTo = dirname(__DIR__); // = /home/<user>/public_html  (parent of /public)
+// El script vive en /public_html/public/_first_deploy.php (web root).
+// El zip se sube a /public_html/_deploy.zip (UN nivel arriba, fuera del web
+// root — no se puede descargar vía HTTP).
+$publicHtml = dirname(__DIR__);          // /public_html
+$zipPath = $publicHtml . '/_deploy.zip';
+$extractTo = $publicHtml;                // extrae sobre /public_html/
 
 if (!is_file($zipPath)) {
     http_response_code(404);
