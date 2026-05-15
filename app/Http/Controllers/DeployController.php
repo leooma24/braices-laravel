@@ -67,12 +67,28 @@ class DeployController extends Controller
                     $output = Artisan::output();
                     break;
 
+                case 'down':
+                    // Modo mantenimiento: el sitio sirve 503 con la página de "back soon"
+                    // a todos los visitantes, excepto a IPs/tokens en el bypass.
+                    Artisan::call('down', [
+                        '--render' => 'errors::503',
+                        '--retry' => 60,
+                    ]);
+                    $output = "Sitio en mantenimiento.\n" . Artisan::output();
+                    break;
+
+                case 'up':
+                    Artisan::call('up');
+                    $output = "Sitio reactivado.\n" . Artisan::output();
+                    break;
+
                 case 'status':
-                    $output = "OK\nLaravel " . app()->version() . "\nEnv: " . app()->environment() . "\nDebug: " . (config('app.debug') ? 'on' : 'off') . "\n";
+                    $maintenance = app()->isDownForMaintenance() ? 'on' : 'off';
+                    $output = "OK\nLaravel " . app()->version() . "\nEnv: " . app()->environment() . "\nDebug: " . (config('app.debug') ? 'on' : 'off') . "\nMaintenance: {$maintenance}\n";
                     break;
 
                 default:
-                    return response('Acción no reconocida. Usa: migrate, cache, clear, storage-link, sitemap, status', 400);
+                    return response('Acción no reconocida. Usa: migrate, cache, clear, storage-link, sitemap, down, up, status', 400);
             }
         } catch (\Throwable $e) {
             return response("ERROR ejecutando '{$action}':\n" . $e->getMessage() . "\n\nTrace:\n" . $e->getTraceAsString(), 500)

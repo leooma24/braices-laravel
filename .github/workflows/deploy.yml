@@ -20,6 +20,27 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, zip, bcmath
           coverage: none
 
+      - name: Stub .env mínimo para el build
+        # DEBE correr ANTES de composer install: el post-autoload-dump
+        # ejecuta `artisan package:discover` que necesita .env. El .env
+        # real vive en el servidor y NUNCA se sobreescribe por el deploy
+        # (está en el exclude del FTP sync).
+        run: |
+          cat > .env <<'EOF'
+          APP_NAME=BienesCorp
+          APP_ENV=production
+          APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          APP_DEBUG=false
+          APP_URL=https://bienescorp.com
+          LOG_CHANNEL=stack
+          DB_CONNECTION=mysql
+          CACHE_DRIVER=file
+          SESSION_DRIVER=file
+          QUEUE_CONNECTION=sync
+          MERCADO_PAGO_ACCESS_TOKEN=stub
+          MERCADO_PAGO_PUBLIC_KEY=stub
+          EOF
+
       - name: Cache de Composer
         uses: actions/cache@v4
         with:
@@ -30,21 +51,13 @@ jobs:
       - name: Install dependencies (sin dev, optimizado)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-      - name: Stub .env mínimo para el build
-        # Solo se usa para que artisan no truene durante el build.
-        # El .env real vive en el servidor y NUNCA se sobreescribe por el deploy.
-        run: |
-          echo "APP_ENV=production" > .env
-          echo "APP_KEY=" >> .env
-          echo "APP_DEBUG=false" >> .env
-
-      - name: Cache de configuración (no aplicado al deploy)
-        # Generamos los caches en CI para validar que la app compila;
-        # el cache real lo regenera el endpoint /deploy/run en producción
-        # con el .env real del servidor.
+      - name: Validar que la app compila
+        # Sanity check: si artisan revienta aquí, el deploy se detiene
+        # ANTES de tocar FTP — el sitio en prod no se ve afectado.
         run: |
           php artisan config:clear
           php artisan view:clear
+          php artisan route:list --columns=method,uri > /dev/null
 
       - name: Eliminar archivos que NO deben subirse
         run: |
@@ -53,6 +66,28 @@ jobs:
           rm -rf .playwright-mcp
           rm -f phpunit.xml
           rm -f .editorconfig
+
+      - name: Modo mantenimiento ON (antes de tocar FTP)
+        # Pone el sitio en 503 mientras hacemos el sync + migrate + cache.
+        # Si el deploy falla, el sitio queda en mantenimiento hasta que
+        # corras `/deploy/run?action=up` manualmente. Mejor eso que medio
+        # roto.
+        env:
+          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
+            echo "Secrets no configurados — skip maintenance ON."
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/out -w "%{http_code}" "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=down" || echo "000")
+          echo "down: HTTP ${code}"
+          cat /tmp/out 2>/dev/null || true
+          if [ "$code" = "503" ]; then
+            echo "::warning::Endpoint deshabilitado en prod (DEPLOY_TOKEN no está en el .env del servidor). Continuamos SIN modo mantenimiento."
+          elif [ "$code" != "200" ]; then
+            echo "::warning::No se pudo poner mantenimiento (HTTP ${code}). Continuamos pero monitorea el sitio durante el sync."
+          fi
 
       - name: Sync vía FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -77,25 +112,84 @@ jobs:
           dangerous-clean-slate: false
 
       - name: Disparar /deploy/run en producción (cache + migraciones)
-        # GitHub Actions no permite `secrets.X != ''` directamente en `if:`,
-        # así que exponemos los secrets como env vars y validamos en bash.
-        # Si APP_DEPLOY_URL o DEPLOY_TOKEN no están configurados, este step
-        # imprime un aviso y termina con éxito (no rompe el deploy).
+        # GitHub Actions no permite `secrets.X != ''` en `if:`, así que
+        # exponemos los secrets como env vars y validamos en bash.
+        #
+        # Manejo gradual:
+        #  - Secrets faltantes en GH → warning + exit 0 (FTP sync ya pasó)
+        #  - /deploy/run responde 503 → el .env de prod aún no tiene
+        #    DEPLOY_TOKEN; warning + exit 0 (FTP sync ya pasó, ejecuta
+        #    el migrate manual o configura el token y vuelve a disparar)
+        #  - /deploy/run responde 403 → token configurado pero no coincide;
+        #    error real
+        #  - Cualquier otro código de error → error real
         env:
           APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
           set -e
           if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
-            echo "::warning::APP_DEPLOY_URL o DEPLOY_TOKEN no configurados — saltando migrate/cache. Configúralos en GitHub Secrets y en el .env de producción."
+            echo "::warning::APP_DEPLOY_URL o DEPLOY_TOKEN no configurados en GitHub Secrets — saltando migrate/cache. El FTP sync ya completó."
             exit 0
           fi
 
+          probe() {
+            curl -sS -o /tmp/deploy_body -w "%{http_code}" \
+              "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=$1" || echo "000"
+          }
+
           echo "→ status"
-          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=status"
+          status_code=$(probe status)
+          echo "HTTP ${status_code}"
+          cat /tmp/deploy_body || true
+          echo ""
+
+          if [ "$status_code" = "503" ]; then
+            echo "::warning::/deploy/run deshabilitado en prod (DEPLOY_TOKEN falta en el .env del servidor). FTP sync OK; corre las migraciones manualmente vía phpMyAdmin o sube el DEPLOY_TOKEN al .env de prod por FTP y vuelve a disparar el workflow."
+            exit 0
+          fi
+          if [ "$status_code" != "200" ]; then
+            echo "::error::/deploy/run?action=status devolvió HTTP ${status_code}. Aborto."
+            exit 1
+          fi
 
           echo "→ migrate"
-          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=migrate"
+          migrate_code=$(probe migrate)
+          echo "HTTP ${migrate_code}"
+          cat /tmp/deploy_body || true
+          echo ""
+          if [ "$migrate_code" != "200" ]; then
+            echo "::error::migrate devolvió HTTP ${migrate_code}. Aborto."
+            exit 1
+          fi
 
           echo "→ cache"
-          curl -sS --fail "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=cache"
+          cache_code=$(probe cache)
+          echo "HTTP ${cache_code}"
+          cat /tmp/deploy_body || true
+          echo ""
+          if [ "$cache_code" != "200" ]; then
+            echo "::error::cache devolvió HTTP ${cache_code}. Aborto."
+            exit 1
+          fi
+
+          echo "Deploy completado."
+
+      - name: Modo mantenimiento OFF
+        # Siempre corre, incluso si pasos anteriores fallaron, para que
+        # el sitio no quede atorado en 503.
+        if: always()
+        env:
+          APP_DEPLOY_URL: ${{ secrets.APP_DEPLOY_URL }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$APP_DEPLOY_URL" ] || [ -z "$DEPLOY_TOKEN" ]; then
+            echo "Secrets no configurados — skip maintenance OFF."
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/out -w "%{http_code}" "${APP_DEPLOY_URL}/deploy/run?token=${DEPLOY_TOKEN}&action=up" || echo "000")
+          echo "up: HTTP ${code}"
+          cat /tmp/out 2>/dev/null || true
+          if [ "$code" != "200" ] && [ "$code" != "503" ]; then
+            echo "::warning::No se pudo desactivar mantenimiento. Si el sitio está en 503, llama manualmente: ${APP_DEPLOY_URL}/deploy/run?token=...&action=up"
+          fi
