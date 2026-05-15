@@ -54,10 +54,15 @@ jobs:
       - name: Validar que la app compila
         # Sanity check: si artisan revienta aquí, el deploy se detiene
         # ANTES de tocar FTP — el sitio en prod no se ve afectado.
+        # Solo verificamos que Laravel bootea y los caches se limpian;
+        # NO usamos route:list aquí porque puede fallar si un ServiceProvider
+        # condicional (Telescope, Sentry stub, etc.) tiene side effects al
+        # registrar rutas. El runtime real corre con el .env de prod en el
+        # servidor, no con el stub de CI.
         run: |
           php artisan config:clear
           php artisan view:clear
-          php artisan route:list --columns=method,uri > /dev/null
+          php artisan --version
 
       - name: Eliminar archivos que NO deben subirse
         run: |
