@@ -103,24 +103,45 @@ jobs:
           FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
           set -e
-          DIR="${FTP_REMOTE_DIR%/}"
+
+          # Limpiar TODO whitespace (CR, LF, tabs, espacios) que pueda venir
+          # en los secrets — un \r o \n al final del valor convierte el URL
+          # en "ftp://host\n/path/file" que curl rechaza con error 3.
+          clean() { printf '%s' "$1" | tr -d '[:space:]'; }
+          HOST=$(clean "$FTP_HOST")
+          USER=$(clean "$FTP_USERNAME")
+          PASS=$(clean "$FTP_PASSWORD")
+          DIR=$(clean "$FTP_REMOTE_DIR")
+          DIR="${DIR%/}"      # quitar slash final si existe
+          DIR="/${DIR#/}"     # asegurar que empieza con un solo slash
+
+          # Diagnóstico sin filtrar credenciales (longitudes y first char).
+          echo "HOST len=${#HOST} first=${HOST:0:1}"
+          echo "DIR='${DIR}' (sin secretos en este valor)"
+          echo "USER len=${#USER}"
+          echo "PASS len=${#PASS}"
+
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$PASS" ] || [ -z "$DIR" ]; then
+            echo "::error::Algún secret está vacío después de limpiar whitespace."
+            exit 1
+          fi
 
           echo "→ Subiendo _first_deploy.php"
           curl -sS --fail --connect-timeout 30 --max-time 60 \
-            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+            -u "${USER}:${PASS}" \
             -T public/_first_deploy.php \
-            "ftp://${FTP_HOST}${DIR}/_first_deploy.php"
+            "ftp://${HOST}${DIR}/_first_deploy.php"
 
           echo "→ Subiendo deploy.zip ($(stat -c%s deploy.zip 2>/dev/null || wc -c < deploy.zip) bytes)"
           curl -sS --fail --connect-timeout 30 --max-time 600 \
-            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
+            -u "${USER}:${PASS}" \
             -T deploy.zip \
-            "ftp://${FTP_HOST}${DIR}/_deploy.zip"
+            "ftp://${HOST}${DIR}/_deploy.zip"
 
           echo "→ Verificando que llegaron"
           curl -sS --connect-timeout 15 \
-            -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
-            "ftp://${FTP_HOST}${DIR}/" --list-only \
+            -u "${USER}:${PASS}" \
+            "ftp://${HOST}${DIR}/" --list-only \
             | grep -E "_deploy.zip|_first_deploy.php" || \
             (echo "::error::Los archivos no aparecen en el servidor"; exit 1)
 
@@ -147,12 +168,14 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
-          DIR="${FTP_REMOTE_DIR%/}/bootstrap/cache"
+          clean() { printf '%s' "$1" | tr -d '[:space:]'; }
+          HOST=$(clean "$FTP_HOST"); USER=$(clean "$FTP_USERNAME"); PASS=$(clean "$FTP_PASSWORD")
+          DIR=$(clean "$FTP_REMOTE_DIR"); DIR="${DIR%/}"; DIR="/${DIR#/}"
           for f in services.php packages.php config.php routes-v7.php; do
             curl --silent --connect-timeout 10 \
-              -u "${FTP_USERNAME}:${FTP_PASSWORD}" \
-              -Q "-DELE ${DIR}/${f}" \
-              "ftp://${FTP_HOST}/" > /dev/null 2>&1 || true
+              -u "${USER}:${PASS}" \
+              -Q "-DELE ${DIR}/bootstrap/cache/${f}" \
+              "ftp://${HOST}/" > /dev/null 2>&1 || true
           done
           echo "Manifest cache limpiado."
 
