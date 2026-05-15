@@ -11,25 +11,38 @@
 @section('content')
 
     <div class="container">
-        <div class="row justify-content-center ">
-            <div class="col-xs-12 m-5">
-                <h1 class="text-center">{{ (isset($property->id) ? 'Editar' : 'Nueva')}} Propiedad</h1>
+        <div class="dashboard-header">
+            <div>
+                <h1>{{ isset($property->id) ? 'Editar Propiedad' : 'Nueva Propiedad' }}</h1>
+                <p>{{ isset($property->id) ? 'Actualiza los datos, imágenes y ubicación.' : 'Completa los datos para publicar tu propiedad.' }}</p>
             </div>
-            <div class="col-xs-12">
-                @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">Datos de la Propiedad</h5>
+            <a href="{{ route('myProperties') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Mis propiedades
+            </a>
+        </div>
+
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="d-flex align-items-start gap-2 mb-2">
+                    <i class="fas fa-exclamation-triangle mt-1"></i>
+                    <strong>Revisa los siguientes campos:</strong>
+                </div>
+                <ul class="mb-0 ps-4">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__header">
+                        <h2><i class="fas fa-home text-primary me-2"></i>Datos de la Propiedad</h2>
+                        <small class="text-muted-2">Los campos en cada pestaña se guardan juntos al pulsar “Guardar”.</small>
                     </div>
-                    <div class="card-body">
+                    <div class="dashboard-card__body">
                         <form action="{{ route('property.save' . (isset($property->id) ? '' : '.new'), $property->id ?? null)}}" method="post" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="lat" id="lat" value="{{ $property->lat ?? '25.7910913' }}">
@@ -448,11 +461,13 @@
 
                               </div>
 
-                              <div class="col-xs-12">
-                                <div class="d-flex justify-content-end">
-                                  <button type="submit" class="btn btn-primary">Guardar</button>
-                                  <a href="{{ route('myProperties') }}" class="ms-2 btn btn-secondary">Cancelar</a>
-                                </div>
+                              <div class="form-action-bar">
+                                  <a href="{{ route('myProperties') }}" class="btn btn-outline-primary">
+                                      <i class="fas fa-times me-1"></i>Cancelar
+                                  </a>
+                                  <button type="submit" class="btn btn-primary btn-lg">
+                                      <i class="fas fa-save me-2"></i>{{ isset($property->id) ? 'Guardar cambios' : 'Publicar propiedad' }}
+                                  </button>
                               </div>
 
                         </form>
