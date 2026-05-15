@@ -9,91 +9,97 @@
 
 @section('content')
 
-    <x-top-background :image="asset('JPG-13.jpg')">
+    <x-top-background
+        :image="asset('JPG-13.jpg')"
+        eyebrow="Estamos para ayudarte"
+        subtitle="Llámanos, escríbenos por correo o déjanos un mensaje. Nuestro equipo responde en menos de 24 horas.">
         Contacto
     </x-top-background>
 
     <div class="container">
-        <div class="card shadow p-5 mc-contact">
-            <div class="row text-center justify-content-center">
-
+        <div class="contact-card">
+            <div class="contact-card__body">
                 @if (session('success'))
-                    <div class="alert alert-success col-12 col-md-7">
-                        {{ session('success') }}
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
                     </div>
                 @endif
-                <div class="col-12 col-md-7">
-                    <h1 class="text-center mt-2 mb-3">Plataforma de Administración de Inmuebles.</h1>
-                    <p class="text-justify">Somos una plataforma desarrollada por Medios Corp.
-                        Agencia Digital con mas de 25 años de experiencia en el ramo de
-                        desarrollo web. Nuestro principal objetivo es brindarles a los
-                        agentes y empresas del ramo inmobiliario nuestro servicio de
-                        administración de propiedades en la nube en tiempo real.</p>
-                </div>
-            </div>
-            <hr />
-            <div class="row ">
-                <div class="col-md-6 col-xs-12">
-                    <p>Estamos aquí para ayudarte en todo lo que necesites referente a nuestra
-                        plataforma. Si tienes preguntas, necesitas ayuda o deseas conocer más
-                        sobre nuestros servicios, no dudes en contactarnos. Nuestro equipo de
-                        soporte técnico está disponible para brindarte la atención y resolver
-                        cualquier inquietud que puedas tener. Si tienes una petición de mejora
-                        a futuro o te gustaría que incluyéramos alguna función  especial en la
-                        plataforma no dudes en hacérnoslo saber.</p>
 
-                    <h6 class="text-primary-dark mb-4">¿Tienes dudas? Llámanos</h6>
+                <div class="row g-5 align-items-start">
+                    <div class="col-md-5">
+                        <h2 class="mb-3" style="font-family: var(--font-display); font-weight: 700;">
+                            Hablemos de tu próximo paso.
+                        </h2>
+                        <p class="text-muted-2 mb-4">
+                            Si tienes preguntas sobre la plataforma, necesitas soporte técnico o quieres
+                            que agreguemos una función a la medida, escríbenos. Nuestro equipo está
+                            disponible para resolver tus dudas y proponerte la mejor solución.
+                        </p>
 
-                    <a href="tel:+526688180202" class="bg-primary-dark text-white display-inline-block p-3 rounded text-decoration-none">
-                        <i class="fas fa-phone-alt"></i>
-                        +52 668 818 0202
-                    </a>
-                </div>
-
-                <div class="col-md-6 col-xs-12">
-                    <form action="{{ route('contact') }}" method="POST">
-                        @csrf
-                        <div class="form-group">
-                            <label for="name">Nombre:</label>
-                            <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" >
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-muted-2 small mb-2" style="letter-spacing: 0.1em;">¿Prefieres llamar?</h6>
+                            <a href="tel:+526688180202" class="contact-call">
+                                <i class="fas fa-phone-alt"></i> +52 668 818 0202
+                            </a>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="email">Correo Electrónico:</label>
-                                    <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" >
 
+                        <div>
+                            <h6 class="text-uppercase text-muted-2 small mb-2" style="letter-spacing: 0.1em;">Correo</h6>
+                            <a href="mailto:info@bienescorp.com" class="text-decoration-none" style="color: var(--color-primary-dark); font-weight: 600;">
+                                <i class="fas fa-envelope me-2"></i>info@bienescorp.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <form action="{{ route('contact') }}" method="POST">
+                            @csrf
+
+                            <div class="form-floating mb-3">
+                                <input type="text" name="name" id="name" class="form-control" placeholder="Nombre" value="{{ old('name') }}" required>
+                                <label for="name">Nombre</label>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="{{ old('email') }}" required>
+                                        <label for="email">Correo electrónico</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" name="phone" id="phone" class="form-control" placeholder="Teléfono" value="{{ old('phone') }}">
+                                        <label for="phone">Teléfono</label>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 col-xs-12">
-                                <div class="form-group">
-                                    <label for="phone">Teléfono:</label>
-                                    <input type="text" name="phone" id="phone" class="form-control" value="{{ old('phone') }}" >
-                                </div>
+
+                            <div class="form-floating mb-3">
+                                <textarea name="message" id="message" class="form-control" placeholder="Mensaje" style="height: 130px;" required>{{ old('message') }}</textarea>
+                                <label for="message">Cuéntanos en qué podemos ayudarte</label>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="message">Mensaje:</label>
-                            <textarea name="message" id="message" class="form-control">{{ old('message') }}</textarea>
-                        </div>
-                        <div class="text-center mt-2">
-                            {!! NoCaptcha::display() !!}
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary mt-3 px-5">Enviar</button>
-                        </div>
+                            <div class="d-flex justify-content-center mb-3">
+                                {!! NoCaptcha::display() !!}
+                            </div>
 
-                        @if ($errors->has('g-recaptcha-response'))
-                            <span class="text-danger">{{ $errors->first('g-recaptcha-response') }}</span>
-                        @endif
-                    </form>
+                            @if ($errors->has('g-recaptcha-response'))
+                                <div class="alert alert-danger small py-2">
+                                    {{ $errors->first('g-recaptcha-response') }}
+                                </div>
+                            @endif
 
-
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>Enviar mensaje
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     {!! NoCaptcha::renderJs() !!}

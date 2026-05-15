@@ -9,8 +9,11 @@
 
 @section('content')
 
-    <x-top-background :image="asset('JPG-11.jpg')">
-        Planes
+    <x-top-background
+        :image="asset('JPG-11.jpg')"
+        eyebrow="Planes y precios"
+        subtitle="Elige el paquete que mejor se ajuste a tu volumen de propiedades. Sin contratos forzosos.">
+        Nuestros Planes
     </x-top-background>
 
     <x-prices :packages="$packages"  />

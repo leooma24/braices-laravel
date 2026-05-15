@@ -12,10 +12,13 @@
 @endpush
 
 @section('content')
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h1 class="mb-2">Encuentra tu próxima escapada</h1>
-            <p class="lead text-muted-2">Hospédate en propiedades únicas, listas para recibirte.</p>
+    <div class="container py-4">
+        <div class="reservations-hero">
+            <span class="badge mb-3" style="background: rgba(255,255,255,0.18); color:#fff; padding: 0.4rem 1rem; border-radius: 999px; font-weight: 600; letter-spacing: 0.05em;">
+                <i class="fas fa-bed me-1"></i> Estancias verificadas
+            </span>
+            <h1>Encuentra tu próxima escapada</h1>
+            <p>Hospédate en propiedades únicas, listas para recibirte.</p>
         </div>
 
         <div class="row g-4">

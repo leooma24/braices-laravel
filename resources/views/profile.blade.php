@@ -9,7 +9,10 @@
 
 @section('content')
 
-    <x-top-background :image="asset('JPG-12.jpg')">
+    <x-top-background
+        :image="asset('JPG-12.jpg')"
+        eyebrow="Tu cuenta"
+        subtitle="Mantén tu información actualizada para mejorar la confianza con los clientes.">
         Perfil
     </x-top-background>
 

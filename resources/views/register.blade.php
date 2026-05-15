@@ -9,128 +9,103 @@
 
 @section('content')
 
-
+<div class="auth-shell">
     <div class="container">
-        <div class="row justify-content-center ">
-            <div class="col-xs-12 col-md-6">
-                <div class="card mt-5">
-                    <div class="h4 card-header bg-primary text-white">{{ __('Favor de llenar todos los campos') }}</div>
+        <div class="auth-card auth-card--wide">
+            <div class="auth-card__brand">
+                <img src="{{ asset('BienesCorpLogo.png') }}" alt="BienesCorp">
+            </div>
+            <h1 class="auth-card__title">Crea tu cuenta</h1>
+            <p class="auth-card__subtitle">Es gratis. Publica tu primera propiedad en minutos.</p>
 
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('register.post') }}">
-                            @csrf
+            @if (session('error'))
+                <div class="alert alert-danger mb-3">{{ session('error') }}</div>
+            @endif
 
-                            <div class="mb-3 row">
-                                <label for="first_name"
-                                    class="col-md-4 col-form-label text-md-end">{{ __('Nombre(s)') }}</label>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                                <div class="col-md-6">
-                                    <input id="first_name" type="text"
-                                        class="form-control @error('first_name') is-invalid @enderror" name="first_name"
-                                        value="{{ old('first_name') }}" autocomplete="off" autofocus>
+            <form method="POST" action="{{ route('register.post') }}">
+                @csrf
 
-                                    @error('first_name')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="mb-3 row">
-                                <label for="last_name"
-                                    class="col-md-4 col-form-label text-md-end">{{ __('Apellido(s)') }}</label>
-
-                                <div class="col-md-6">
-                                    <input id="last_name" type="text"
-                                        class="form-control @error('last_name') is-invalid @enderror" name="last_name"
-                                        value="{{ old('last_name') }}" autocomplete="off" autofocus>
-
-                                    @error('last_name')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="mb-3 row">
-                                <label for="email"
-                                    class="col-md-4 col-form-label text-md-end">{{ __('Email') }}</label>
-
-                                <div class="col-md-6">
-                                    <input id="email" type="email"
-                                        class="form-control @error('email') is-invalid @enderror" name="email"
-                                        value="{{ old('email') }}" autocomplete="on">
-
-                                    @error('email')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="mb-3 row">
-                                <label for="password"
-                                    class="col-md-4 col-form-label text-md-end">{{ __('Contraseña') }}</label>
-
-                                <div class="col-md-6">
-                                    <input id="password" type="password"
-                                        class="form-control @error('password') is-invalid @enderror" name="password"
-                                        autocomplete="current-password">
-
-                                    @error('password')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="mb-3 row">
-                                <label for="password-confirm"
-                                    class="col-md-4 col-form-label text-md-end">{{ __('Confirmar Contraseña') }}</label>
-
-                                <div class="col-md-6">
-                                    <input id="password-confirm" type="password" class="form-control"
-                                        name="password_confirmation" autocomplete="current-password">
-                                </div>
-                            </div>
-
-                            <div class="mb-3 row">
-                                <div class="col-md-6 offset-md-4">
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary">
-                                            {{ __('Registrar') }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </form>
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        @if (session('error'))
-                        <div class="col-xs-12">
-                            <div class="alert alert-danger my-3">
-                                {{ session('error') }}
-                            </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="first_name" type="text"
+                                class="form-control @error('first_name') is-invalid @enderror"
+                                name="first_name" placeholder="Nombre(s)"
+                                value="{{ old('first_name') }}" required autofocus>
+                            <label for="first_name">Nombre(s)</label>
+                            @error('first_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="last_name" type="text"
+                                class="form-control @error('last_name') is-invalid @enderror"
+                                name="last_name" placeholder="Apellido(s)"
+                                value="{{ old('last_name') }}" required>
+                            <label for="last_name">Apellido(s)</label>
+                            @error('last_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
+
+                <div class="form-floating mb-3">
+                    <input id="email" type="email"
+                        class="form-control @error('email') is-invalid @enderror"
+                        name="email" placeholder="Correo electrónico"
+                        value="{{ old('email') }}" required>
+                    <label for="email">Correo electrónico</label>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="password" type="password"
+                                class="form-control @error('password') is-invalid @enderror"
+                                name="password" placeholder="Contraseña" required>
+                            <label for="password">Contraseña</label>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input id="password-confirm" type="password" class="form-control"
+                                name="password_confirmation" placeholder="Confirmar" required>
+                            <label for="password-confirm">Confirmar contraseña</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Crear cuenta
+                    </button>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                ¿Ya tienes cuenta? <a href="{{ route('login') }}">Inicia sesión</a>
             </div>
         </div>
     </div>
-
+</div>
 
 @endsection

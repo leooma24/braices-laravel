@@ -10,112 +10,109 @@
 @section('content')
 
 <div class="container">
-    <div class="row">
-
     @if (session('success'))
-    <div class="col-xs-12">
-        <div class="alert alert-success my-3">
-            {{ session('success') }}
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
     @endif
     @if (session('error'))
-        <div class="col-xs-12">
-            <div class="alert alert-danger my-3">
-                {{ session('error') }}
-            </div>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    <div class="col-xs-12">
-        <div class="card my-3">
-            <div class="card-header d-flex justify-content-between p-3">
-                <h3 class="card-title">Mis Propiedades</h3>
-                <div class="card-tools">
-                    <a href="{{ route('properties.new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nueva Propiedad
-                    </a>
+
+    <div class="dashboard-header">
+        <div>
+            <h1>Mis Propiedades</h1>
+            <p>Administra tu inventario, destácalas y gestiona reservas.</p>
+        </div>
+        <a href="{{ route('properties.new') }}" class="btn btn-accent btn-lg">
+            <i class="fas fa-plus me-2"></i>Nueva propiedad
+        </a>
+    </div>
+
+    @if ($list->isEmpty())
+        <div class="dashboard-card">
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <i class="fas fa-home"></i>
                 </div>
-            </div>
-
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table mt-3 mc-table">
-                      <thead class="table-dark">
-                        <tr>
-                          <th scope="col">ID</th>
-                          <th scope="col">Título</th>
-                          <th scope="col" width="40%">Descripción</th>
-                          <th scope="col">Precio</th>
-                          <th scope="col" width="130px">Acciones</th>
-                        </tr>
-                      </thead>
-                        <tbody>
-                        @foreach ($list as $property)
-                            <tr>
-                                <th scope="row">{{ $property->id }}</th>
-                                <td>{{ $property->title }}</td>
-                                <td>{{ $property->description }}</td>
-                                <td>${{ number_format($property->price) }}</td>
-                                <td>
-                                    <div class="d-flex justify-content-between gap-1">
-                                        <a href="{{ route('property', $property->slug) }}"
-                                        class="btn btn-primary rounded-circle btn-sm" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if($property->isFeaturedNow())
-                                            <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-warning rounded-circle btn-sm" title="Quitar destacado">
-                                                    <i class="fas fa-star"></i>
-                                                </button>
-                                            </form>
-                                        @else
-                                            <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-outline-warning rounded-circle btn-sm" title="Destacar 30 días">
-                                                    <i class="far fa-star"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        @if($property->is_reservable)
-                                            <a href="{{ route('host.calendar', $property->slug) }}"
-                                            class="btn btn-info rounded-circle btn-sm text-white" title="Calendario">
-                                                <i class="fas fa-calendar-alt"></i>
-                                            </a>
-                                        @endif
-                                        <a href="{{ route('properties.edit', $property->slug) }}"
-                                        class="btn btn-secondary rounded-circle btn-sm" title="Editar">
-                                            <i class="fas fa-edit text-white"></i>
-                                        </a>
-                                        <button class="btn btn-danger rounded-circle btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $property->id }}" title="Eliminar">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-
-                            @if ($list->isEmpty())
-                                <tr>
-                                    <td colspan="5" class="text-center">No hay propiedades registradas
-                                        <a href="{{ route('properties.new') }}" class="btn btn-primary btn-sm">Crear
-                                        Propiedad</a>
-                                    </td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                  </div>
+                <h5>Aún no tienes propiedades publicadas</h5>
+                <p class="mb-4">Publica tu primera propiedad y empieza a recibir contactos hoy.</p>
+                <a href="{{ route('properties.new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Crear propiedad
+                </a>
             </div>
         </div>
+    @else
+        <div class="row g-4 mb-4">
+            @foreach ($list as $property)
+                <div class="col-12 col-md-6 col-lg-4">
+                    <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }}">
+                        <a href="{{ route('property', $property->slug) }}" class="d-block">
+                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy" style="height: 200px; object-fit: cover;">
+                        </a>
 
-    </div>
-    <div class="col-12">
-    <div class="d-flex justify-content-center">
-    {{ $list->links() }}
-    </div>
-    </div>
-    </div>
+                        @if($property->isFeaturedNow())
+                            <span class="badge featured-badge position-absolute top-0 end-0 m-3">
+                                <i class="fas fa-star me-1"></i>Destacada
+                            </span>
+                        @endif
+
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="card-title mb-0 text-truncate me-2">{{ $property->title }}</h5>
+                                <small class="text-muted-2 text-nowrap">#{{ $property->id }}</small>
+                            </div>
+                            <p class="small text-muted-2 mb-3 text-truncate">
+                                {{ Str::limit($property->description, 90) }}
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                <span class="mc-price">${{ number_format($property->price) }}</span>
+
+                                <div class="action-buttons">
+                                    <a href="{{ route('property', $property->slug) }}"
+                                       class="btn btn-outline-primary btn-sm" title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="btn btn-sm {{ $property->isFeaturedNow() ? 'btn-warning' : 'btn-outline-warning' }}"
+                                                title="{{ $property->isFeaturedNow() ? 'Quitar destacado' : 'Destacar 30 días' }}">
+                                            <i class="{{ $property->isFeaturedNow() ? 'fas' : 'far' }} fa-star"></i>
+                                        </button>
+                                    </form>
+                                    @if($property->is_reservable)
+                                        <a href="{{ route('host.calendar', $property->slug) }}"
+                                           class="btn btn-info btn-sm text-white" title="Calendario">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('properties.edit', $property->slug) }}"
+                                       class="btn btn-secondary btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            data-id="{{ $property->id }}" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="d-flex justify-content-center mb-5">
+            {{ $list->links() }}
+        </div>
+    @endif
 </div>
 
 <x-delete-modal>

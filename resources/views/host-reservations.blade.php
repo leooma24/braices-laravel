@@ -5,11 +5,19 @@
 
 @section('content')
     <div class="container py-4">
-        <h1 class="h3 mb-4">Reservas recibidas</h1>
-
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         @endif
+
+        <div class="dashboard-header">
+            <div>
+                <h1>Reservas Recibidas</h1>
+                <p>Huéspedes que han reservado tus propiedades.</p>
+            </div>
+        </div>
 
         @forelse($reservations as $reservation)
             <div class="card mb-3">
@@ -37,7 +45,15 @@
                 </div>
             </div>
         @empty
-            <div class="alert alert-info">Aún no recibes reservaciones.</div>
+            <div class="dashboard-card">
+                <div class="empty-state">
+                    <div class="empty-state__icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h5>Aún no recibes reservaciones</h5>
+                    <p>Cuando un huésped reserve una de tus propiedades, aparecerá aquí.</p>
+                </div>
+            </div>
         @endforelse
 
         {{ $reservations->links() }}

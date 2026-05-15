@@ -91,171 +91,178 @@
       </nav>
     <x-carrusel :image="$property->photo_main" :images="$property->images" />
 
-    <div class="row mt-5">
+    <div class="row mt-4 g-4">
         <div class="col-12 col-md-8">
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-                    <div>
+            <div class="detail-card">
+                <div class="detail-card__body">
+                    <div class="detail-badges">
                         @foreach ($property->propertyTypes as $propertyType)
-                            <div class="badge text-bg-primary">{{ $propertyType->name }}</div>
+                            <span class="badge">{{ $propertyType->name }}</span>
                         @endforeach
-
-                        <div class="badge text-bg-primary">{{ $property->status->name }}</div>
-                        <div class="badge text-bg-secondary"> <i class="fas fa-eye"></i> {{ $property->views }} Vistas</div>
+                        <span class="badge">{{ $property->status->name }}</span>
+                        <span class="badge badge-views"><i class="fas fa-eye me-1"></i>{{ $property->views }} vistas</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="card-title "><strong>{{ $property->title }}</strong></h2>
-                        <p class="h4 m-0"><strong>${{ number_format($property->price) }}</strong></p>
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+                        <h2 class="card-title mb-0" style="font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em;">{{ $property->title }}</h2>
+                        <span class="detail-price">${{ number_format($property->price) }}</span>
                     </div>
-                    <p class="card-text mb-2 text-secondary text-dots">{{ $property->address }}</p>
+                    <p class="text-muted-2 mb-4">
+                        <i class="fas fa-map-marker-alt text-primary me-1"></i>{{ $property->address }}
+                    </p>
 
-                    <h4 class="mt-3"><strong>Descripción</strong></h4>
-                    <p class="card-text">{{ $property->description }}</p>
-
+                    <h4 class="detail-section-title"><i class="fas fa-align-left"></i>Descripción</h4>
+                    <p class="card-text" style="line-height: 1.75;">{{ $property->description }}</p>
                 </div>
             </div>
 
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-
-                    <h4 class="mt-1"><strong>Datos Generales</strong></h4>
-                    <div class="row">
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('key.svg') }}" alt="bed" width="20" height="20" /> {{ $property->id }}</span>
+            <div class="detail-card">
+                <div class="detail-card__body">
+                    <h4 class="detail-section-title"><i class="fas fa-clipboard-list"></i>Datos generales</h4>
+                    <div class="spec-grid">
+                        <div class="spec-item">
+                            <img src="{{ asset('key.svg') }}" alt="ID">
+                            <div>
+                                <div class="spec-item__value">#{{ $property->id }}</div>
+                                <div class="spec-item__label">ID</div>
+                            </div>
                         </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('market.svg') }}" alt="bed" width="20" height="20" />
-                                @foreach ($property->propertyTypes as $propertyType)
-                                    {{ $propertyType->name }}
-                                @endforeach
-                            </span>
+                        <div class="spec-item">
+                            <img src="{{ asset('market.svg') }}" alt="Tipo">
+                            <div>
+                                <div class="spec-item__value">
+                                    @foreach ($property->propertyTypes as $propertyType){{ $propertyType->name }}@endforeach
+                                </div>
+                                <div class="spec-item__label">Tipo</div>
+                            </div>
                         </div>
                         @if(!$property->isLand())
-                            <div class="col-xs-6 col-md-3 p-2">
-                                <span>
-                                    <img src="{{ asset('bed.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bedrooms }} Recámaras
-
-                                </span>
+                            <div class="spec-item">
+                                <img src="{{ asset('bed.svg') }}" alt="Recámaras">
+                                <div>
+                                    <div class="spec-item__value">{{ $property->bedrooms }}</div>
+                                    <div class="spec-item__label">Recámaras</div>
+                                </div>
                             </div>
-
-                            <div class="col-xs-6 col-md-3 p-2">
-                                <span> <img src="{{ asset('baths.svg') }}" alt="bed" width="20" height="20" /> {{ $property->bathrooms }} Baños</span>
+                            <div class="spec-item">
+                                <img src="{{ asset('baths.svg') }}" alt="Baños">
+                                <div>
+                                    <div class="spec-item__value">{{ $property->bathrooms }}</div>
+                                    <div class="spec-item__label">Baños</div>
+                                </div>
                             </div>
                         @endif
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('sizes.svg') }}" alt="Metros Cuadrados" width="20" height="20" /> {{ number_format($property->square_feet) }} m²</span>
+                        <div class="spec-item">
+                            <img src="{{ asset('sizes.svg') }}" alt="m²">
+                            <div>
+                                <div class="spec-item__value">{{ number_format($property->square_feet) }} m²</div>
+                                <div class="spec-item__label">Superficie</div>
+                            </div>
                         </div>
                         @if(!$property->isLand())
-                            <div class="col-xs-6 col-md-3 p-2">
-                                <span> <img src="{{ asset('calendar.svg') }}" alt="Año de Construcción" width="20" height="20" /> {{ ($property->year_built) }}</span>
+                            <div class="spec-item">
+                                <img src="{{ asset('calendar.svg') }}" alt="Año">
+                                <div>
+                                    <div class="spec-item__value">{{ $property->year_built }}</div>
+                                    <div class="spec-item__label">Año</div>
+                                </div>
                             </div>
                         @endif
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="Metros de Frente" width="20" height="20" /> {{ ($property->front) }} de frente</span>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <span> <img src="{{ asset('vertical-rule.svg') }}" alt="Metros de Fondo" width="20" height="20" /> {{ ($property->depth) }} de fondo</span>
-                        </div>
+                        @if($property->front)
+                            <div class="spec-item">
+                                <img src="{{ asset('vertical-rule.svg') }}" alt="Frente">
+                                <div>
+                                    <div class="spec-item__value">{{ $property->front }} m</div>
+                                    <div class="spec-item__label">Frente</div>
+                                </div>
+                            </div>
+                        @endif
+                        @if($property->depth)
+                            <div class="spec-item">
+                                <img src="{{ asset('vertical-rule.svg') }}" alt="Fondo">
+                                <div>
+                                    <div class="spec-item__value">{{ $property->depth }} m</div>
+                                    <div class="spec-item__label">Fondo</div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
-
             </div>
 
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-
-                    <h4 class="mt-1"><strong>Dirección</strong></h4>
+            <div class="detail-card">
+                <div class="detail-card__body">
+                    <h4 class="detail-section-title"><i class="fas fa-map-marker-alt"></i>Dirección</h4>
                     <div class="row">
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Calle</h6>
+                        <div class="col-md-6">
+                            <div class="address-row">
+                                <span class="address-row__label">Calle</span>
+                                <span class="address-row__value">{{ $property->address }}</span>
+                            </div>
+                            <div class="address-row">
+                                <span class="address-row__label">País</span>
+                                <span class="address-row__value">{{ $property->countryName?->nombre }}</span>
+                            </div>
+                            <div class="address-row">
+                                <span class="address-row__label">Estado</span>
+                                <span class="address-row__value">{{ $property->stateName?->nombre }}</span>
+                            </div>
+                            <div class="address-row">
+                                <span class="address-row__label">Municipio</span>
+                                <span class="address-row__value">{{ $property->townshipName?->nombre }}</span>
+                            </div>
                         </div>
-                        <div class="col-xs-6 col-md-9 p-2">
-                            {{ $property->address }}
+                        <div class="col-md-6">
+                            <div class="address-row">
+                                <span class="address-row__label">Ciudad</span>
+                                <span class="address-row__value">{{ $property->city }}</span>
+                            </div>
+                            <div class="address-row">
+                                <span class="address-row__label">Colonia</span>
+                                <span class="address-row__value">{{ $property->suburbName?->nombre }}</span>
+                            </div>
+                            <div class="address-row">
+                                <span class="address-row__label">Código Postal</span>
+                                <span class="address-row__value">{{ $property->zip }}</span>
+                            </div>
                         </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">País</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->countryName?->nombre }}
-                        </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Estado</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->stateName?->nombre }}
-                        </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Municipio</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->townshipName?->nombre }}
-                        </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Ciudad</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->city }}
-                        </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Colonia</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->suburbName?->nombre }}
-                        </div>
-
-                        <div class="col-xs-6 col-md-3 p-2">
-                            <h6 class="mb-0">Código Postal</h6>
-                        </div>
-                        <div class="col-xs-6 col-md-3 p-2">
-                            {{ $property->zip }}
-                        </div>
-
                     </div>
                 </div>
-
             </div>
 
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-
-                    <h4 class="mt-1"><strong>Ubicación</strong></h4>
-
-                    <div id="map" style="height: 500px; width: 100%;"></div>
-
+            <div class="detail-card">
+                <div class="detail-card__body">
+                    <h4 class="detail-section-title"><i class="fas fa-map"></i>Ubicación</h4>
+                    <div id="map" style="height: 420px; width: 100%; border-radius: var(--radius-md); overflow: hidden;"></div>
                 </div>
             </div>
 
             @if($property->youtube)
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-
-                    <h4 class="mt-1"><strong>Video</strong></h4>
-
-                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/{{ $property->youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <div class="detail-card">
+                    <div class="detail-card__body">
+                        <h4 class="detail-section-title"><i class="fab fa-youtube"></i>Video</h4>
+                        <div class="ratio ratio-16x9" style="border-radius: var(--radius-md); overflow: hidden;">
+                            <iframe src="https://www.youtube.com/embed/{{ $property->youtube }}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                        </div>
+                    </div>
                 </div>
-            </div>
             @endif
 
             @php $avg = $property->averageRating(); @endphp
             @if($property->reviews->isNotEmpty())
-                <div class="card mb-3 border-1 bg-white">
-                    <div class="card-body">
+                <div class="detail-card">
+                    <div class="detail-card__body">
                         <div class="d-flex justify-content-between align-items-baseline mb-3">
-                            <h4 class="mt-1 mb-0"><strong>Reseñas</strong></h4>
+                            <h4 class="detail-section-title mb-0"><i class="fas fa-comment-dots"></i>Reseñas</h4>
                             @if($avg)
-                                <span><i class="fa fa-star text-warning"></i> <strong>{{ $avg }}</strong> <span class="text-muted">({{ $property->reviews->count() }})</span></span>
+                                <span class="fs-5"><i class="fas fa-star text-warning"></i> <strong>{{ $avg }}</strong> <span class="text-muted-2 small">({{ $property->reviews->count() }})</span></span>
                             @endif
                         </div>
                         @foreach($property->reviews->sortByDesc('created_at')->take(10) as $review)
                             <div class="border-bottom pb-3 mb-3">
                                 <div class="d-flex justify-content-between mb-1">
                                     <strong>{{ $review->user->name }}</strong>
-                                    <span>{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
+                                    <span class="text-warning">{{ str_repeat('★', $review->rating) }}<span class="text-muted">{{ str_repeat('★', 5 - $review->rating) }}</span></span>
                                 </div>
                                 <small class="text-muted">{{ $review->created_at->format('d/m/Y') }}</small>
                                 <p class="mb-0 mt-1">{{ $review->comment }}</p>
@@ -265,21 +272,21 @@
                 </div>
             @endif
 
-            <div class="card mb-3 border-1 bg-white">
-                <div class="card-body">
-                    <h4 class="mt-1"><strong>Compartir</strong></h4>
+            <div class="detail-card">
+                <div class="detail-card__body">
+                    <h4 class="detail-section-title"><i class="fas fa-share-alt"></i>Compartir</h4>
                     <div class="sharethis-inline-share-buttons"></div>
                 </div>
             </div>
         </div>
 
         <div class="col-xs-12 col-md-4">
-            <div class="card mb-3 position-sticky" style="top: 90px;">
+            <div class="agent-card position-sticky" style="top: 90px;">
                 <div class="card-body d-flex flex-column text-center">
                     <div class="agent">
-                        <img src="{{ $property->user->photo }}" class="rounded-circle shadow-sm" alt="{{ $property->user->name }}" width="120" height="120" style="object-fit: cover;">
-                        <h5 class="card-title mt-3 mb-1">{{ $property->user->name }}</h5>
-                        <p class="text-muted-2 small mb-3">Ejecutivo de ventas</p>
+                        <img src="{{ $property->user->photo }}" class="agent-card__avatar" alt="{{ $property->user->name }}">
+                        <h5 class="agent-card__name">{{ $property->user->name }}</h5>
+                        <p class="agent-card__role">Ejecutivo de ventas</p>
 
                         <div class="d-grid gap-2 mb-3">
                             @if($property->user->phone_number)

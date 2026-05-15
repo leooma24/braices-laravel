@@ -9,12 +9,15 @@
 
 @section('content')
 
-    <x-top-background :image="asset('JPG-12.jpg')">
+    <x-top-background
+        :image="asset('JPG-12.jpg')"
+        eyebrow="Inventario verificado"
+        subtitle="Casas, departamentos, terrenos y locales — usa los filtros para encontrar el tuyo.">
         Propiedades
     </x-top-background>
 
     <div class="container">
-        <div class="filters">
+        <div class="filters filters--floating">
             <form action="{{ route('properties') }}" method="GET">
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-6 col-lg-3">

@@ -5,14 +5,28 @@
 
 @section('content')
     <div class="container py-4">
-        <h1 class="h3 mb-4">Mis reservaciones</h1>
-
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         @endif
+
+        <div class="dashboard-header">
+            <div>
+                <h1>Mis Reservaciones</h1>
+                <p>Revisa tus estancias confirmadas, pendientes y completadas.</p>
+            </div>
+            <a href="{{ route('reservations') }}" class="btn btn-accent">
+                <i class="fas fa-search me-2"></i>Explorar estancias
+            </a>
+        </div>
 
         @forelse($reservations as $reservation)
             <div class="card mb-3">
@@ -91,8 +105,17 @@
                 </div>
             </div>
         @empty
-            <div class="alert alert-info">
-                Aún no tienes reservaciones. <a href="{{ route('reservations') }}">Explora propiedades disponibles</a>.
+            <div class="dashboard-card">
+                <div class="empty-state">
+                    <div class="empty-state__icon">
+                        <i class="fas fa-suitcase-rolling"></i>
+                    </div>
+                    <h5>Aún no tienes reservaciones</h5>
+                    <p class="mb-4">Explora propiedades disponibles y reserva tu próxima escapada.</p>
+                    <a href="{{ route('reservations') }}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Buscar estancias
+                    </a>
+                </div>
             </div>
         @endforelse
 

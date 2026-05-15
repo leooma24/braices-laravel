@@ -9,12 +9,14 @@
 
 @section('content')
     <div class="container py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="dashboard-header">
             <div>
-                <h1 class="h3 mb-1">{{ $property->title }}</h1>
-                <p class="text-muted mb-0">Administrar disponibilidad</p>
+                <h1>{{ $property->title }}</h1>
+                <p>Administrar disponibilidad y bloqueos de fechas.</p>
             </div>
-            <a href="{{ route('myProperties') }}" class="btn btn-outline-secondary btn-sm">← Mis propiedades</a>
+            <a href="{{ route('myProperties') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Mis propiedades
+            </a>
         </div>
 
         <div class="row g-4">
