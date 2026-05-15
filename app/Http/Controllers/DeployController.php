@@ -41,6 +41,41 @@ class DeployController extends Controller
                     $output = Artisan::output();
                     break;
 
+                case 'sync-migrations':
+                    // Reconcilia el tracker de migraciones con el schema real.
+                    // Para cada migration file cuya fecha es ANTES del corte
+                    // (2024-10-01), marca como "already ran" en la tabla
+                    // `migrations` SIN ejecutarla. Útil cuando el schema fue
+                    // construido a mano vía phpMyAdmin antes de tener Laravel
+                    // migrations bien configuradas. Después de esto, `migrate`
+                    // sólo procesa las migraciones nuevas (idempotentes).
+                    $cutoff = '2024_10_01';
+                    $migrationFiles = glob(database_path('migrations/*.php'));
+                    $alreadyTracked = \DB::table('migrations')->pluck('migration')->toArray();
+                    $marked = [];
+                    $kept = [];
+                    foreach ($migrationFiles as $f) {
+                        $name = basename($f, '.php');
+                        if (in_array($name, $alreadyTracked, true)) {
+                            continue;
+                        }
+                        if (strncmp($name, $cutoff, strlen($cutoff)) < 0) {
+                            \DB::table('migrations')->insert(['migration' => $name, 'batch' => 1]);
+                            $marked[] = $name;
+                        } else {
+                            $kept[] = $name;
+                        }
+                    }
+                    $output = "Marcadas como ya-corridas (pre-{$cutoff}): " . count($marked) . "\n";
+                    foreach ($marked as $m) {
+                        $output .= "  ✓ {$m}\n";
+                    }
+                    $output .= "\nPendientes para ejecutar con 'migrate' (post-{$cutoff}): " . count($kept) . "\n";
+                    foreach ($kept as $k) {
+                        $output .= "  → {$k}\n";
+                    }
+                    break;
+
                 case 'cache':
                     Artisan::call('config:cache');
                     $output .= "[config:cache]\n" . Artisan::output() . "\n";
