@@ -79,19 +79,91 @@
 @section('content')
 
 <div class="container">
-    <nav aria-label="breadcrumb" class="my-4">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/">Inicio</a></li>
-          <li class="breadcrumb-item"><a href="/propiedades">Propiedades</a></li>
-          @if(isset($slugUser))
-            <li class="breadcrumb-item"><a href="{{ route('my.properties', ['slug' => $slugUser]) }}">{{ $property->user->name }}</a></li>
+    <ol class="detail-breadcrumb">
+        <li><a href="/"><i class="fas fa-home me-1"></i>Inicio</a></li>
+        <li class="detail-breadcrumb__sep"><i class="fas fa-chevron-right"></i></li>
+        <li><a href="/propiedades">Propiedades</a></li>
+        @if(isset($slugUser))
+            <li class="detail-breadcrumb__sep"><i class="fas fa-chevron-right"></i></li>
+            <li><a href="{{ route('my.properties', ['slug' => $slugUser]) }}">{{ $property->user->name }}</a></li>
         @endif
-          <li class="breadcrumb-item active" aria-current="page">{{ $property->title }} </li>
-        </ol>
-      </nav>
-    <x-carrusel :image="$property->photo_main" :images="$property->images" />
+        <li class="detail-breadcrumb__sep"><i class="fas fa-chevron-right"></i></li>
+        <li class="detail-breadcrumb__current">{{ $property->title }}</li>
+    </ol>
 
-    <div class="row mt-4 g-4">
+    {{-- Galería con hero + thumbnails (estilo Airbnb) --}}
+    @php
+        $heroSrc = $property->photo_main ?? null;
+        $thumbs = $property->images->take(4);
+        $totalPhotos = ($heroSrc ? 1 : 0) + $property->images->count();
+    @endphp
+
+    <div class="property-gallery" data-bs-toggle="modal" data-bs-target="#galleryModal" role="button" tabindex="0">
+        @if($heroSrc)
+            <div class="property-gallery__cell">
+                <img src="{{ $heroSrc }}" alt="{{ $property->title }}" loading="eager">
+            </div>
+        @elseif($thumbs->isNotEmpty())
+            <div class="property-gallery__cell">
+                <img src="{{ $thumbs->first()->photo ?? $thumbs->first()->image_path }}" alt="{{ $property->title }}" loading="eager">
+            </div>
+        @else
+            <div class="property-gallery__cell property-gallery__cell--placeholder">
+                <i class="fas fa-image"></i>
+            </div>
+        @endif
+
+        @for($i = 0; $i < 4; $i++)
+            @php $img = $thumbs[$i] ?? null; @endphp
+            <div class="property-gallery__cell {{ !$img ? 'property-gallery__cell--placeholder' : '' }}">
+                @if($img)
+                    <img src="{{ $img->photo ?? $img->image_path }}" alt="{{ $property->title }} {{ $i+2 }}" loading="lazy">
+                @else
+                    <i class="fas fa-image"></i>
+                @endif
+            </div>
+        @endfor
+
+        @if($totalPhotos > 1)
+            <button type="button" class="property-gallery__overlay-btn" data-bs-toggle="modal" data-bs-target="#galleryModal">
+                <i class="fas fa-th"></i> Ver todas las fotos ({{ $totalPhotos }})
+            </button>
+        @endif
+    </div>
+
+    {{-- Modal lightbox con carousel --}}
+    <div class="modal fade gallery-modal" id="galleryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <div class="modal-body d-flex align-items-center">
+                    <x-carrusel :image="$property->photo_main" :images="$property->images" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="property-actions mt-3">
+        @if($property->isFeaturedNow())
+            <span class="property-actions__featured">
+                <i class="fas fa-star"></i> Propiedad destacada
+            </span>
+        @endif
+        <button type="button" class="property-actions__btn"
+                onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : navigator.clipboard.writeText(location.href).then(() => this.querySelector('.btn-label').textContent = '¡Copiado!')">
+            <i class="fas fa-share-alt"></i> <span class="btn-label">Compartir</span>
+        </button>
+        <a href="https://wa.me/?text={{ urlencode($property->title . ' — ' . url()->current()) }}"
+           target="_blank" rel="noopener" class="property-actions__btn">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+        </a>
+        <a href="#contact-form" class="property-actions__btn ms-auto"
+           style="background: var(--color-accent); color:#fff; border-color: var(--color-accent);">
+            <i class="fas fa-envelope"></i> Contactar agente
+        </a>
+    </div>
+
+    <div class="row g-4">
         <div class="col-12 col-md-8">
             <div class="detail-card">
                 <div class="detail-card__body">
@@ -105,7 +177,14 @@
 
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
                         <h2 class="card-title mb-0" style="font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em;">{{ $property->title }}</h2>
-                        <span class="detail-price">${{ number_format($property->price) }}</span>
+                        <div class="text-end">
+                            <span class="detail-price">${{ number_format($property->price) }}</span>
+                            @if($property->transaction)
+                                <div class="text-muted-2 small mt-1">
+                                    <i class="fas fa-tag me-1"></i>{{ $property->transaction->name }}
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     <p class="text-muted-2 mb-4">
                         <i class="fas fa-map-marker-alt text-primary me-1"></i>{{ $property->address }}
@@ -288,6 +367,19 @@
                         <h5 class="agent-card__name">{{ $property->user->name }}</h5>
                         <p class="agent-card__role">Ejecutivo de ventas</p>
 
+                        @if($property->is_reservable && $property->price_per_night)
+                            <div class="reservation-widget">
+                                <div>
+                                    <span class="reservation-widget__price">${{ number_format($property->price_per_night) }}</span>
+                                    <span class="reservation-widget__per"> / noche</span>
+                                </div>
+                                <a href="{{ route('reservation.show', $property->slug) }}"
+                                   class="btn btn-accent btn-lg w-100 mt-2">
+                                    <i class="fas fa-calendar-check me-2"></i>Reservar ahora
+                                </a>
+                            </div>
+                        @endif
+
                         <div class="d-grid gap-2 mb-3">
                             @if($property->user->phone_number)
                                 <a href="https://wa.me/{{ preg_replace('/\s+/', '', $property->user->phone_number) }}?text={{ urlencode('Hola, me interesa la propiedad: ' . $property->title) }}"
@@ -296,8 +388,8 @@
                                     <i class="fab fa-whatsapp me-2"></i>WhatsApp
                                 </a>
                             @endif
-                            <a href="mailto:{{ $property->user->email }}" class="btn btn-outline-primary">
-                                <i class="fas fa-envelope me-2"></i>{{ $property->user->email }}
+                            <a href="mailto:{{ $property->user->email }}" class="btn btn-outline-primary text-truncate">
+                                <i class="fas fa-envelope me-2"></i>Enviar correo
                             </a>
                             <a href="{{ route('my.properties', ['slug' => $property->user->slug]) }}" class="btn btn-link">
                                 Ver más propiedades del agente
@@ -322,7 +414,7 @@
 
                     <hr />
 
-                    <div class="send-message text-start">
+                    <div class="send-message text-start" id="contact-form">
                         @if (session('success'))
                             <div class="alert alert-success" role="alert">
                                 {{ session('success') }}
