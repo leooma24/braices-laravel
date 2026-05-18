@@ -34,18 +34,18 @@ class Package extends Model
     /* -----------------------------------------------------------------
      | Pricing helpers
      |
-     | `price` se considera el precio mensual de referencia. El precio
-     | anual = precio_mensual * 10 (regala 2 meses si pagan anual).
-     | Las promociones se aplican como porcentaje de descuento sobre
-     | ambos.
+     | `price` está guardado como precio ANUAL (12 meses). Se divide
+     | entre 12 para obtener el mensual de referencia. El "precio anual"
+     | que se muestra al usuario al pagar de golpe = mensual * 10
+     | (regala 2 meses). Las promociones aplican % sobre ambos.
      | ----------------------------------------------------------------- */
 
     public function getMonthlyPriceAttribute(): float
     {
-        return (float) $this->price;
+        return $this->price > 0 ? (float) $this->price / 12 : 0.0;
     }
 
-    /** Precio anual de lista (sin promo) — 10 meses (regala 2). */
+    /** Precio anual con beneficio "2 meses gratis" — = mensual * 10. */
     public function getAnnualPriceAttribute(): float
     {
         return $this->monthly_price * 10;

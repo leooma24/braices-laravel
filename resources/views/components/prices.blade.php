@@ -8,7 +8,9 @@
         </div>
 
         @php
-            $anyPromo = $packages->contains(fn($p) => $p->hasActivePromo());
+            // Solo consideramos promo "visible" si el paquete tiene precio > 0
+            // (un descuento sobre el plan gratuito no tiene sentido).
+            $anyPromo = $packages->contains(fn($p) => $p->hasActivePromo() && $p->price > 0);
         @endphp
 
         @if($anyPromo)
@@ -24,7 +26,8 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
             @foreach($packages as $index => $package)
                 @php
-                    $promo = $package->activePromotion();
+                    // Promo solo aplica visualmente si hay precio > 0
+                    $promo = $package->price > 0 ? $package->activePromotion() : null;
                     $isHighlight = $packages->count() == ($index+1);
                     $effectiveMonthly = $package->effective_monthly;
                     $effectiveAnnual = $package->effective_annual;
@@ -51,18 +54,24 @@
                                 <div class="price-card__amount">
                                     <span class="price-card__currency">$</span>
                                     <span class="price-card__value">{{ number_format($effectiveMonthly, 0) }}</span>
-                                    <span class="price-card__period">/mes</span>
+                                    <span class="price-card__period">{{ $package->price > 0 ? '/mes' : '' }}</span>
                                 </div>
-                                <div class="price-card__annual">
-                                    Pago anual:
-                                    @if($promo)
-                                        <s class="text-muted-2">${{ number_format($regularAnnual, 0) }}</s>
-                                    @endif
-                                    <strong>${{ number_format($effectiveAnnual, 0) }} MXN</strong>
-                                </div>
-                                <div class="price-card__savings">
-                                    <i class="fas fa-gift"></i> 2 meses gratis pagando anual
-                                </div>
+                                @if($package->price > 0)
+                                    <div class="price-card__annual">
+                                        Pago anual:
+                                        @if($promo)
+                                            <s class="text-muted-2">${{ number_format($regularAnnual, 0) }}</s>
+                                        @endif
+                                        <strong>${{ number_format($effectiveAnnual, 0) }} MXN</strong>
+                                    </div>
+                                    <div class="price-card__savings">
+                                        <i class="fas fa-gift"></i> 2 meses gratis pagando anual
+                                    </div>
+                                @else
+                                    <div class="price-card__annual text-muted-2">
+                                        Para siempre — sin tarjeta de crédito
+                                    </div>
+                                @endif
                             </div>
 
                             @if($promo)
