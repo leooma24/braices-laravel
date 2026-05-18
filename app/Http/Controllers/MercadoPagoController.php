@@ -57,6 +57,10 @@ class MercadoPagoController extends Controller
             ->first();
 
         if(!$payment) {
+            // Servidor calcula el precio efectivo (con promo si aplica) —
+            // nunca confiar en el monto del cliente.
+            $effective = $package->effective_annual;
+
             // Crear una preferencia de pago
             $preference = new Preference();
 
@@ -64,7 +68,7 @@ class MercadoPagoController extends Controller
             $item = new Item();
             $item->title = $package->name;
             $item->quantity = 1;
-            $item->unit_price = $package->price; // Precio en tu moneda local
+            $item->unit_price = (float) $effective;
             $preference->items = [$item];
 
             $preference->back_urls = [
@@ -87,7 +91,9 @@ class MercadoPagoController extends Controller
                 'payment_id' => '',
                 'user_id' => $user->id,
                 'package_id' => $package->id,
-                'status' => 'Pending'
+                'amount' => $effective,
+                'provider' => 'mercadopago',
+                'status' => 'Pending',
             ]);
             $package->preference_id = $preference->id;
         } else {

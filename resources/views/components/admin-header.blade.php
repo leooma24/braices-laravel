@@ -22,6 +22,13 @@
                     <span>Paquetes</span>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.promotions.index') }}"
+                   class="admin-subnav__link {{ Request::is('administrador/promociones*') ? 'is-active' : '' }}">
+                    <i class="fas fa-bolt"></i>
+                    <span>Promociones</span>
+                </a>
+            </li>
         </ul>
     </div>
 </nav>

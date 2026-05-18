@@ -1584,6 +1584,159 @@ footer .nav-link:hover {
     box-shadow: var(--shadow-sm);
 }
 
+/* ============================================================
+   Pricing cards with promo support
+   ============================================================ */
+.promo-banner {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.promo-banner__icon {
+    font-size: 1.75rem;
+    background: rgba(255,255,255,0.18);
+    border-radius: 50%;
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.promo-banner__body { display: flex; flex-direction: column; gap: 0.15rem; }
+.promo-banner__body strong { font-size: 1.05rem; }
+.promo-banner__body span { opacity: 0.92; font-size: 0.92rem; }
+
+.price-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 220ms var(--ease), box-shadow 220ms;
+    position: relative;
+}
+.price-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+.price-card--featured {
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 20px rgba(0, 119, 182, 0.15);
+}
+.price-card--featured .price-card__header {
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: #fff;
+}
+.price-card--featured .price-card__name { color: #fff; }
+.price-card--promo {
+    border-color: var(--color-accent);
+}
+.price-card__ribbon {
+    position: absolute;
+    top: 14px; right: -36px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+    color: #fff;
+    font-weight: 800;
+    padding: 0.4rem 3rem;
+    transform: rotate(35deg);
+    font-size: 0.82rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 2;
+    letter-spacing: 0.04em;
+}
+.price-card__header {
+    padding: 1.25rem 1.25rem;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-gray-50);
+}
+.price-card--featured .price-card__header { border-bottom: none; }
+.price-card__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--color-text);
+}
+.price-card__body {
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.price-card__pricing { text-align: center; }
+.price-card__strike {
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+.price-card__amount {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.15rem;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+.price-card__currency {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+.price-card__value {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+    letter-spacing: -0.02em;
+}
+.price-card__period {
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+.price-card__annual {
+    color: var(--color-text);
+    font-size: 0.92rem;
+    margin-bottom: 0.4rem;
+}
+.price-card__annual strong { color: var(--color-primary-dark); }
+.price-card__savings {
+    color: var(--color-success);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+.price-card__slots {
+    background: var(--color-accent);
+    color: #fff;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.8rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+.price-card__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    flex-grow: 1;
+    text-align: left;
+}
+.price-card__features li {
+    padding: 0.4rem 0;
+    color: var(--color-text);
+    font-size: 0.92rem;
+    border-bottom: 1px dashed var(--color-border);
+}
+.price-card__features li:last-child { border-bottom: none; }
+
 /* Reservation widget in agent card */
 .reservation-widget {
     background: var(--color-primary-50);

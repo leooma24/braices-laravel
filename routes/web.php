@@ -123,6 +123,12 @@ Route::middleware('role:admin')->group(function () {
     Route::put('/administrador/paquetes/nueva', [PackageController::class, 'new'])->name('admin.packages.new');
     Route::put('/administrador/paquetes/save/{package}', [PackageController::class, 'save'])->name('admin.packages.save');
     Route::delete('/administrador/paquetes/eliminar/{package}', [PackageController::class, 'destroy'])->name('admin.packages.destroy');
+
+    // Promociones de paquetes (CRUD)
+    Route::get('/administrador/promociones', [\App\Http\Controllers\PromotionController::class, 'index'])->name('admin.promotions.index');
+    Route::post('/administrador/promociones', [\App\Http\Controllers\PromotionController::class, 'store'])->name('admin.promotions.store');
+    Route::put('/administrador/promociones/{promotion}', [\App\Http\Controllers\PromotionController::class, 'update'])->name('admin.promotions.update');
+    Route::delete('/administrador/promociones/{promotion}', [\App\Http\Controllers\PromotionController::class, 'destroy'])->name('admin.promotions.destroy');
 });
 
 Route::controller(AjaxController::class)->group(function () {
