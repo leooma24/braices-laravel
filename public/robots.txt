@@ -4,3 +4,5 @@ Disallow: /administrador/
 Disallow: /cuenta/
 Disallow: /reservaciones/retorno
 Disallow: /api/
+
+Sitemap: https://bienescorp.com/sitemap.xml

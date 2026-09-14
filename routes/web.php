@@ -59,6 +59,13 @@ Route::get('/robots.txt', function () {
     return response($content, 200)->header('Content-Type', 'text/plain');
 });
 
+// Sitemap dinámico (cache 1 h): en prod no corre el cron de sitemap:generate y en CLI
+// las URLs saldrían con el APP_URL del servidor en vez del dominio real.
+Route::get('/sitemap.xml', function (\App\Services\SitemapBuilder $builder) {
+    $xml = \Illuminate\Support\Facades\Cache::remember('sitemap.xml', now()->addHour(), fn () => $builder->build()->render());
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
+
 Route::get('/propiedad/{slug}/reservar', [ReservationController::class, 'show'])->name('reservation.show');
 Route::post('/api/reservations/quote', [ReservationController::class, 'quote'])->name('api.reservations.quote');
 Route::get('/api/properties/{property}/availability', [ReservationController::class, 'availability'])->name('api.properties.availability');

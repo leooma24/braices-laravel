@@ -99,8 +99,10 @@ class DeployController extends Controller
                     break;
 
                 case 'sitemap':
-                    Artisan::call('sitemap:generate');
-                    $output = Artisan::output();
+                    // /sitemap.xml es dinámico; no generar public/sitemap.xml aquí porque
+                    // taparía la ruta con URLs del APP_URL del servidor.
+                    \Illuminate\Support\Facades\Cache::forget('sitemap.xml');
+                    $output = "Cache del sitemap limpiado; /sitemap.xml se regenera en la siguiente visita.\n";
                     break;
 
                 case 'down':

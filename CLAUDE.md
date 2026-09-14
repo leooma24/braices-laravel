@@ -136,8 +136,9 @@ Stub para Sentry (apagado por flag `SENTRY_ENABLED=false`). Para activar:
 
 ## SEO
 
-- `GET /robots.txt` se sirve vía ruta dinámica en `routes/web.php` (apunta a `url('/sitemap.xml')` con APP_URL real).
-- `php artisan sitemap:generate` genera `public/sitemap.xml` con páginas estáticas + propiedades activas. Schedule diario a las 04:00 en `Console/Kernel`.
+- En el servidor responde el archivo estático `public/robots.txt`, que tapa la ruta `/robots.txt` de `routes/web.php`. Si cambias reglas, edita el archivo (ya incluye `Sitemap: https://bienescorp.com/sitemap.xml`).
+- `GET /sitemap.xml` es dinámico: ruta en `routes/web.php` con cache de 1 h y lógica en `App\Services\SitemapBuilder`. No generes `public/sitemap.xml` en prod: taparía la ruta, y desde CLI las URLs salen del `APP_URL` del servidor (hoy apunta a localhost). `php artisan sitemap:generate` queda para uso local; `/deploy/run?action=sitemap` solo limpia la cache.
+- El deploy (extractor zip) no borra archivos del servidor: quitar un archivo del repo no lo elimina en prod.
 - Cada `/propiedad/{slug}` incluye JSON-LD (`RealEstateListing` o `Accommodation` con `aggregateRating` cuando hay reviews).
 
 ## Featured listings

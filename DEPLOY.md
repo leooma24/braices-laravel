@@ -1,17 +1,22 @@
 # Deploy a producción
 
-Este proyecto se deploya vía FTP automatizado con GitHub Actions. Sin SSH.
+Este proyecto se deploya vía FTP con GitHub Actions. Sin SSH.
+
+> **El workflow es manual** (`workflow_dispatch`): hacer push a master NO despliega.
+> Después del push corre `gh workflow run deploy.yml --ref master`
+> (o GitHub → Actions → *Deploy to FTP* → *Run workflow*).
 
 ## Arquitectura del deploy
 
 ```
-local (push a master)
+local: git push origin master  →  gh workflow run deploy.yml --ref master
    │
    ▼
 GitHub Actions (.github/workflows/deploy.yml)
    1. composer install --no-dev --optimize-autoloader
-   2. Limpia archivos que no van a prod (.env, .git, tests, etc.)
-   3. FTP sync hacia el servidor (sin tocar .env, storage/, public/images/)
+   2. Arma deploy.zip (sin .env, .git, tests, storage volátil ni public/images/)
+   3. Sube el zip por FTP y lo extrae con public/_first_deploy.php
+      (extractTo solo agrega/sobrescribe: un archivo borrado del repo NO se borra en el servidor)
    4. Llama GET /deploy/run?token=XXX&action=migrate
    5. Llama GET /deploy/run?token=XXX&action=cache
 ```
@@ -104,9 +109,10 @@ php artisan schema:check
    ```
    Guarda el archivo. Es tu red de seguridad si algo sale mal.
 
-2. **Push a master desde local.** El workflow se dispara automático:
+2. **Push a master y dispara el workflow** (es manual):
    ```powershell
    git push origin master
+   gh workflow run deploy.yml --ref master
    ```
 
 3. **Monitorea en GitHub** → pestaña *Actions*. Tarda ~3-5 min.
@@ -127,10 +133,20 @@ php artisan schema:check
 
 ## Deploys subsecuentes
 
-Cada `git push origin master` despliega automáticamente. El workflow:
-- Sube solo archivos modificados (FTP sync incremental).
+```powershell
+git push origin master
+gh workflow run deploy.yml --ref master   # el push por sí solo NO despliega
+gh run watch                              # seguir el progreso (~3-5 min)
+```
+
+El workflow:
+- Sube el proyecto completo en un zip y lo extrae encima (no borra archivos que ya no estén en el repo).
 - Re-ejecuta migraciones (idempotentes, no rompe si ya están aplicadas).
 - Regenera caches.
+
+> `public/` tiene un `.gitignore` local que hace fallar `git add public/css/app.css` aunque el archivo
+> esté versionado (el comando sí lo agrega, pero sale con error y corta cadenas con `&&`).
+> Para archivos ya trackeados usa `git add -u`.
 
 ## Acciones disponibles en `/deploy/run`
 
@@ -170,7 +186,8 @@ El workflow las protege explícitamente:
 
 ## Después del primer deploy: cron del scheduler
 
-Para que las tareas programadas (release-expired, sitemap, backups) corran:
+Para que las tareas programadas (release-expired, complete-past, request-reviews, backups) corran
+(el sitemap ya no depende del cron: `/sitemap.xml` es dinámico):
 
 **En cPanel** → *Cron Jobs*, agrega:
 
