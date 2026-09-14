@@ -424,6 +424,12 @@ hr { color: var(--color-border); opacity: 1; }
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
+/* La imagen se genera a 1080x1920 (estado de WhatsApp); se escala al contenedor. */
+.imageEstado img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
 .select2-selection__choice {
     background-color: var(--color-primary-50) !important;
     border-color: var(--color-primary) !important;

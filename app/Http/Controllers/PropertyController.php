@@ -287,19 +287,7 @@ class PropertyController extends Controller
             'images.*' => 'sometimes|file|mimes:jpg,jpeg,png,bmp|max:2048',
         ]);
 
-        $uploadedFiles = $request->file('images');
-
-        if ($uploadedFiles) {
-            foreach ($uploadedFiles as $file) {
-                // Generar nombre seguro: timestamp + random (no usar getClientOriginalName
-                // directamente — un atacante puede meter caracteres exóticos o paths).
-                $fileName = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $file->extension();
-                $file->move(public_path('images'), $fileName);
-                $property->images()->create([
-                    'photo' => $fileName,
-                ]);
-            }
-        }
+        $this->saveGalleryImages($property, $request->file('images'));
 
         $property->fill($data);
         $property->propertyTypes()->sync($request->property_type_id);
@@ -437,6 +425,11 @@ class PropertyController extends Controller
                 ->withInput();
         }
 
+        // Validar antes de crear la propiedad para no consumir la publicación si falla.
+        $request->validate([
+            'images.*' => 'sometimes|file|mimes:jpg,jpeg,png,bmp|max:2048',
+        ]);
+
         $data = array_filter($request->all(), function ($value) {
             return !is_null($value);
         });
@@ -459,11 +452,28 @@ class PropertyController extends Controller
         $property->save();
 
         $property->propertyTypes()->sync($request->property_type_id);
+        $this->saveGalleryImages($property, $request->file('images'));
 
         $userPackage->remaining_listings -= 1;
         $userPackage->save();
 
         return redirect(route('myProperties'))->with('success', 'La Propiedad ha sido creada');
+    }
+
+    /**
+     * Guarda las fotos de la pestaña "Imagenes" (images[]) en public/images.
+     */
+    private function saveGalleryImages(Property $property, ?array $files): void
+    {
+        foreach ($files ?? [] as $file) {
+            // Generar nombre seguro: timestamp + random (no usar getClientOriginalName
+            // directamente — un atacante puede meter caracteres exóticos o paths).
+            $fileName = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $file->extension();
+            $file->move(public_path('images'), $fileName);
+            $property->images()->create([
+                'photo' => $fileName,
+            ]);
+        }
     }
 
     public function uploadPhoto(request $request)
@@ -492,124 +502,53 @@ class PropertyController extends Controller
 
     public function getImageProperty($id)
     {
-        $property = Property::find($id);
+        $property = Property::with(['suburbName', 'townshipName', 'transaction', 'user'])->find($id);
         if (!$property) {
             abort(404);
         }
 
-        $width = 300;
-        $height = 450;
-        $image = imagecreatetruecolor($width, $height);
-        $backgroundColor = imagecolorallocate($image, 255, 255, 255);
-        imagefill($image, 0, 0, $backgroundColor);
+        $stats = [];
+        if ($property->square_feet) {
+            $stats[] = ['value' => number_format(round($property->square_feet)) . ' m²', 'label' => 'Terreno'];
+        }
+        if ($property->square_meters_contruction) {
+            $stats[] = ['value' => number_format(round($property->square_meters_contruction)) . ' m²', 'label' => 'Construcción'];
+        }
+        if ($property->bedrooms) {
+            $stats[] = ['value' => (string) $property->bedrooms, 'label' => $property->bedrooms == 1 ? 'Recámara' : 'Recámaras'];
+        }
+        if ($property->bathrooms) {
+            $stats[] = ['value' => (string) $property->bathrooms, 'label' => $property->bathrooms == 1 ? 'Baño' : 'Baños'];
+        }
+        if (count($stats) < 4 && $property->front && $property->depth) {
+            $stats[] = ['value' => "{$property->front} x {$property->depth}", 'label' => 'Medidas (m)'];
+        }
 
         // El accessor devuelve URL pública; resolver a path real del filesystem
         $rawPhoto = $property->getRawOriginal('photo_main');
-        $propertyImagePath = $rawPhoto ? public_path('images/' . $rawPhoto) : null;
-        $extension = $propertyImagePath ? strtolower(pathinfo($propertyImagePath, PATHINFO_EXTENSION)) : null;
 
-        $propertyImage = null;
-        if ($propertyImagePath && file_exists($propertyImagePath)) {
-            if (in_array($extension, ['jpg', 'jpeg'])) {
-                $propertyImage = imagecreatefromjpeg($propertyImagePath);
-            } elseif ($extension === 'png') {
-                $propertyImage = imagecreatefrompng($propertyImagePath);
-            } elseif ($extension === 'gif') {
-                $propertyImage = imagecreatefromgif($propertyImagePath);
-            } elseif ($extension === 'webp' && function_exists('imagecreatefromwebp')) {
-                $propertyImage = imagecreatefromwebp($propertyImagePath);
-            }
-        }
+        $renderer = new \App\Services\PropertyShareImage(
+            public_path('fonts/metropolis.medium.otf'),
+            public_path('fonts/metropolis.black.otf'),
+            public_path('BienesCorpLogo.png'),
+        );
 
-        $propertyImageHeight = 0;
-        if ($propertyImage) {
-            $propertyImageWidth = imagesx($propertyImage);
-            $propertyImageHeight = imagesy($propertyImage);
+        $image = $renderer->render([
+            'photo' => $rawPhoto ? public_path('images/' . $rawPhoto) : null,
+            'operation' => $property->transaction ? 'En ' . mb_strtolower($property->transaction->name) : null,
+            'title' => (string) $property->title,
+            'price' => '$' . number_format((float) $property->price),
+            'location' => implode(', ', array_filter([
+                $property->suburbName?->nombre,
+                $property->city ?: $property->townshipName?->nombre,
+            ])),
+            'stats' => $stats,
+            'phone' => $property->user?->phone_number,
+            'site' => parse_url(config('app.url'), PHP_URL_HOST) ?: 'bienescorp.com',
+        ]);
 
-            if ($propertyImageWidth > 300) {
-                $newWidth = 300;
-                $newHeight = (int) (($propertyImageHeight / $propertyImageWidth) * $newWidth);
-                $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
-                imagecopyresampled($resizedImage, $propertyImage, 0, 0, 0, 0, $newWidth, $newHeight, $propertyImageWidth, $propertyImageHeight);
-                imagedestroy($propertyImage);
-                $propertyImage = $resizedImage;
-                $propertyImageWidth = $newWidth;
-                $propertyImageHeight = $newHeight;
-            }
-
-            imagecopy($image, $propertyImage, 0, 0, 0, 0, $propertyImageWidth, $propertyImageHeight);
-            imagedestroy($propertyImage);
-        }
-
-        // Asignar un color para el texto
-        $textColor = imagecolorallocate($image, 0, 0, 0); // Negro
-
-        $fontPath = public_path('fonts/metropolis.medium.otf'); // Asegúrate de tener esta fuente en la ruta especificada
-
-        // Añadir texto a la imagen
-        // Función para centrar el texto
-        function centerText($image, $text, $fontSize, $y, $color, $fontPath, $width)
-        {
-            $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
-            $textWidth = $bbox[2] - $bbox[0];
-            $x = ($width - $textWidth) / 2;
-            imagettftext($image, $fontSize, 0, $x, $y, $color, $fontPath, $text);
-        }
-
-        // Función para dividir el texto en varias líneas si es demasiado largo
-        function wrapText($text, $fontSize, $fontPath, $maxWidth)
-        {
-            $words = explode(' ', $text);
-            $lines = [];
-            $currentLine = '';
-
-            foreach ($words as $word) {
-                $testLine = $currentLine . ' ' . $word;
-                $bbox = imagettfbbox($fontSize, 0, $fontPath, $testLine);
-                $textWidth = $bbox[2] - $bbox[0];
-
-                if ($textWidth > $maxWidth) {
-                    $lines[] = trim($currentLine);
-                    $currentLine = $word;
-                } else {
-                    $currentLine = $testLine;
-                }
-            }
-
-            $lines[] = trim($currentLine);
-            return $lines;
-        }
-
-        // Añadir texto a la imagen
-        $plus = 25;
-        $texts = [
-            $property->title,
-            $property->suburbName?->nombre,
-            '$' . number_format($property->price),
-            "{$property->front} x {$property->depth} mts de terreno",
-        ];
-        if ($property->square_meters_contruction) {
-            $texts[] = "Construcción de {$property->square_meters_contruction} m2";
-        }
-        $texts[] = "Información {$property->user?->phone_number}";
-
-        $y = $propertyImageHeight + $plus;
-        foreach ($texts as $text) {
-            $lines = wrapText($text, 12, $fontPath, $width);
-            foreach ($lines as $line) {
-                centerText($image, $line, 12, $y, $textColor, $fontPath, $width);
-                $y += $plus;
-            }
-        }
-
-        // Devolver la imagen directamente (evita race condition con archivo temporal compartido)
-        ob_start();
-        imagepng($image);
-        $imageData = ob_get_clean();
-        imagedestroy($image);
-
-        return response($imageData, 200)
-            ->header('Content-Type', 'image/png')
+        return response($image, 200)
+            ->header('Content-Type', 'image/jpeg')
             ->header('Cache-Control', 'no-store');
     }
 }
