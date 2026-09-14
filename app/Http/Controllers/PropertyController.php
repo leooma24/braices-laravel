@@ -544,7 +544,8 @@ class PropertyController extends Controller
             ])),
             'stats' => $stats,
             'phone' => $property->user?->phone_number,
-            'site' => parse_url(config('app.url'), PHP_URL_HOST) ?: 'bienescorp.com',
+            // Host del request (no APP_URL): en prod APP_URL puede no estar configurado.
+            'site' => preg_replace('/^www\./', '', request()->getHost()) ?: 'bienescorp.com',
         ]);
 
         return response($image, 200)
