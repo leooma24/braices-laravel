@@ -550,6 +550,32 @@ footer .nav-link:hover {
     padding: 0.45rem 0.85rem !important;
 }
 
+/* Mis Propiedades: fila de acciones de la card (Editar + iconos).
+   No confundir con .property-actions (action bar del detalle). */
+.owner-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.owner-actions form { display: contents; }
+.owner-actions .btn {
+    height: 36px;
+    padding-block: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+.owner-actions__main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.owner-actions__icon {
+    flex: 0 0 36px;
+    width: 36px;
+    padding-inline: 0;
+}
+
 /* =============================================================
    Hero with search (homepage)
    ============================================================= */

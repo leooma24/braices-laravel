@@ -70,35 +70,38 @@
                                 {{ Str::limit($property->description, 90) }}
                             </p>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                                <span class="mc-price">${{ number_format($property->price) }}</span>
+                            <div class="mt-auto pt-3 border-top">
+                                <div class="mc-price text-truncate mb-3">${{ number_format($property->price) }}</div>
 
-                                <div class="action-buttons">
+                                <div class="owner-actions">
+                                    <a href="{{ route('properties.edit', $property->slug) }}"
+                                       class="btn btn-secondary btn-sm owner-actions__main">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </a>
                                     <a href="{{ route('property', $property->slug) }}"
-                                       class="btn btn-outline-primary btn-sm" title="Ver">
+                                       class="btn btn-outline-primary btn-sm owner-actions__icon"
+                                       title="Ver" aria-label="Ver">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <form method="POST" action="{{ route('properties.feature', $property->slug) }}" class="d-inline">
+                                    <form method="POST" action="{{ route('properties.feature', $property->slug) }}">
                                         @csrf
                                         <button type="submit"
-                                                class="btn btn-sm {{ $property->isFeaturedNow() ? 'btn-warning' : 'btn-outline-warning' }}"
-                                                title="{{ $property->isFeaturedNow() ? 'Quitar destacado' : 'Destacar 30 días' }}">
+                                                class="btn btn-sm owner-actions__icon {{ $property->isFeaturedNow() ? 'btn-warning' : 'btn-outline-warning' }}"
+                                                title="{{ $property->isFeaturedNow() ? 'Quitar destacado' : 'Destacar 30 días' }}"
+                                                aria-label="{{ $property->isFeaturedNow() ? 'Quitar destacado' : 'Destacar 30 días' }}">
                                             <i class="{{ $property->isFeaturedNow() ? 'fas' : 'far' }} fa-star"></i>
                                         </button>
                                     </form>
                                     @if($property->is_reservable)
                                         <a href="{{ route('host.calendar', $property->slug) }}"
-                                           class="btn btn-info btn-sm text-white" title="Calendario">
+                                           class="btn btn-info btn-sm text-white owner-actions__icon"
+                                           title="Calendario" aria-label="Calendario">
                                             <i class="fas fa-calendar-alt"></i>
                                         </a>
                                     @endif
-                                    <a href="{{ route('properties.edit', $property->slug) }}"
-                                       class="btn btn-secondary btn-sm" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button class="btn btn-danger btn-sm"
+                                    <button class="btn btn-danger btn-sm owner-actions__icon"
                                             data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                            data-id="{{ $property->id }}" title="Eliminar">
+                                            data-id="{{ $property->id }}" title="Eliminar" aria-label="Eliminar">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
