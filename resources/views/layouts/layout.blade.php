@@ -104,6 +104,12 @@
                         </li>
                         <li><a class="dropdown-item py-3 {{ Request::is('cuenta/mis-propiedades') ? 'active' : '' }}"
                                 href="{{ route('myProperties') }}">Mis Propiedades</a></li>
+                        <li><a class="dropdown-item py-3 {{ Request::is('cuenta/prospectos') ? 'active' : '' }}"
+                                href="{{ route('leads') }}">Prospectos
+                                @if (($prospectosPendientes ?? 0) > 0)
+                                    <span class="badge bg-danger ms-1">{{ $prospectosPendientes }}</span>
+                                @endif
+                            </a></li>
                         <li><a class="dropdown-item py-3 {{ Request::is('propiedad/nueva') ? 'active' : '' }}"
                                 href="{{ route('properties.new') }}">Agregar Propiedad</a></li>
 
@@ -160,6 +166,12 @@
                                     </li>
                                     <li><a class="dropdown-item py-3 {{ Request::is('cuenta/mis-propiedades') ? 'active' : '' }}"
                                             href="{{ route('myProperties') }}">Mis Propiedades</a></li>
+                                    <li><a class="dropdown-item py-3 {{ Request::is('cuenta/prospectos') ? 'active' : '' }}"
+                                            href="{{ route('leads') }}">Prospectos
+                                            @if (($prospectosPendientes ?? 0) > 0)
+                                                <span class="badge bg-danger ms-1">{{ $prospectosPendientes }}</span>
+                                            @endif
+                                        </a></li>
                                     <li><a class="dropdown-item py-3 {{ Request::is('propiedad/nueva') ? 'active' : '' }}"
                                             href="{{ route('properties.new') }}">Agregar Propiedad</a></li>
                                     <li><a class="dropdown-item py-3 {{ Request::is('cuenta/mis-reservaciones') ? 'active' : '' }}"

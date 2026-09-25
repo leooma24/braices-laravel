@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DeployController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReservationController;
@@ -84,6 +85,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/cuenta/perfil/update/password', [UserController::class, 'updatePassword'])->name('profile.update.password');
     Route::put('/cuenta/perfil/update/photo', [UserController::class, 'updatePhoto'])->name('profile.update.photo');
     Route::get('/cuenta/mis-propiedades', [PropertyController::class, 'getMyProperties'])->name('myProperties');
+    Route::get('/cuenta/prospectos', [LeadController::class, 'index'])->name('leads');
+    Route::post('/cuenta/prospectos/{id}/estado', [LeadController::class, 'updateStatus'])->name('leads.status');
     Route::get('/cuenta/propiedad/nueva', [PropertyController::class, 'newProperty'])->name('properties.new');
     Route::get('/propiedad/{slug}/editar', [PropertyController::class, 'editProperty'])->name('properties.edit');
     Route::get('/propiedad/{id}/image/{image}/delete', [PropertyController::class, 'deleteImage'])->name('property.delete.image');
