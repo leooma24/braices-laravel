@@ -26,11 +26,27 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PropertyController extends Controller
 {
+    /**
+     * Estatus que el dueño de la propiedad puede asignar desde el formulario
+     * de edición: 1 Disponible, 2 Rentada, 3 Vendida. El 4 (Cancelada) se
+     * reserva para el panel de administración.
+     */
+    private const OWNER_EDITABLE_STATUSES = [1, 2, 3];
+
+    /**
+     * Estatus que se muestran en el listado publico /propiedades:
+     * 1 Disponible, 2 Rentada, 3 Vendida. Las canceladas no se publican.
+     */
+    private const PUBLIC_STATUSES = [1, 2, 3];
+
     public function getProperties(Request $request)
     {
         $data = $request->all();
 
-        $list = Property::with(['propertyTypes', 'status'])->where('property_status_id', 1);
+        // Disponibles, Rentadas y Vendidas aparecen en el listado (las dos
+        // ultimas con sello); Cancelada (4) queda fuera.
+        $list = Property::with(['propertyTypes', 'status'])
+            ->whereIn('property_status_id', self::PUBLIC_STATUSES);
 
         if (!empty($data['tipo'])) {
             $list->whereHas('propertyTypes', function ($q) use ($data) {
@@ -47,7 +63,9 @@ class PropertyController extends Controller
             $list->where('price', '<=', $data['precio_maximo']);
         }
         // Featured primero, despues por id desc (mas recientes)
-        $list->orderByDesc('is_featured')
+        // Disponibles primero, luego destacadas, luego las mas recientes.
+        $list->orderByRaw('CASE WHEN property_status_id = 1 THEN 0 ELSE 1 END')
+            ->orderByDesc('is_featured')
             ->orderByDesc('id');
         $list = $list->paginate($request->get('per_page', 15));
 
@@ -184,7 +202,7 @@ class PropertyController extends Controller
 
         $types = PropertyTypeModel::all();
         $transactions = TransactionTypeModel::all();
-        $status = PropertyStatusModel::all();
+        $status = PropertyStatusModel::whereIn('id', self::OWNER_EDITABLE_STATUSES)->get();
 
         return view('property-edit', compact(
             'property',
@@ -213,7 +231,7 @@ class PropertyController extends Controller
         $property = new Property();
         $types = PropertyTypeModel::all();
         $transactions = TransactionTypeModel::all();
-        $status = PropertyStatusModel::all();
+        $status = PropertyStatusModel::whereIn('id', self::OWNER_EDITABLE_STATUSES)->get();
 
         $countries = Country::all()->toArray();
         $countries = array_merge([['id' => '', 'nombre' => 'Seleccione un país']], $countries);
@@ -271,9 +289,16 @@ class PropertyController extends Controller
             $data['price'] = str_replace(',', '', $data['price']);
         }
 
-        // Evitar mass-assignment de campos sensibles. user_id y slug no están
-        // en $fillable, pero property_status_id sí — y solo admin debería cambiarlo.
-        unset($data['property_status_id'], $data['user_id'], $data['slug'], $data['is_featured'], $data['featured_until']);
+        // Evitar mass-assignment de campos sensibles. user_id, slug y los
+        // campos de destacado nunca vienen del formulario.
+        unset($data['user_id'], $data['slug'], $data['is_featured'], $data['featured_until']);
+
+        // El estatus SÍ lo maneja el dueño (marcar como Rentada / Vendida),
+        // pero solo dentro de la lista blanca — "Cancelada" queda para admin.
+        $statusId = (int) ($data['property_status_id'] ?? 0);
+        if (!in_array($statusId, self::OWNER_EDITABLE_STATUSES, true)) {
+            unset($data['property_status_id']);
+        }
 
         $photo = $request->file('photo_main');
         if ($photo) {

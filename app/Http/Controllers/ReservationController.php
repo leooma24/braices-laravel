@@ -74,6 +74,10 @@ class ReservationController extends Controller
             throw ValidationException::withMessages(['property_id' => 'La propiedad no acepta reservaciones.']);
         }
 
+        if (!$property->isAvailable()) {
+            throw ValidationException::withMessages(['property_id' => 'La propiedad ya no está disponible.']);
+        }
+
         $guests = (int) ($data['guests'] ?? 1);
         if ($property->max_guests && $guests > $property->max_guests) {
             throw ValidationException::withMessages(['guests' => "El máximo de huéspedes es {$property->max_guests}."]);
@@ -130,6 +134,7 @@ class ReservationController extends Controller
             // y creamos la reservación. Otra petición concurrente espera aquí.
             $property = Property::where('id', $data['property_id'])
                 ->where('is_reservable', true)
+                ->where('property_status_id', 1)
                 ->lockForUpdate()
                 ->firstOrFail();
 

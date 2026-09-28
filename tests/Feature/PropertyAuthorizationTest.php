@@ -24,6 +24,7 @@ class PropertyAuthorizationTest extends TestCase
 
         \DB::table('property_status')->insert(['id' => 1, 'name' => 'Activa']);
         \DB::table('transaction_types')->insert(['id' => 1, 'name' => 'Renta']);
+        \DB::table('property_types')->insert(['id' => 1, 'name' => 'Casa']);
 
         $this->owner = $this->makeUser('owner@test.com', 'owner');
         $this->intruder = $this->makeUser('intruder@test.com', 'intruder');
@@ -153,5 +154,57 @@ class PropertyAuthorizationTest extends TestCase
         $this->get('/cuenta/mis-propiedades')->assertRedirect('/login');
         $this->get('/cuenta/mis-reservaciones')->assertRedirect('/login');
         $this->get('/cuenta/reservas-recibidas')->assertRedirect('/login');
+    }
+
+    /**
+     * Payload mínimo que pasa la validación de PropertyRequest.
+     */
+    private function validPayload(array $overrides = []): array
+    {
+        return array_merge([
+            'title' => 'Casa del Owner',
+            'description' => 'desc',
+            'address' => 'addr',
+            'city' => 'CDMX',
+            'state' => '9',
+            'country' => '1',
+            'suburb' => '1',
+            'zip' => '06600',
+            'price' => 1_000_000,
+            'square_feet' => 100,
+            'bedrooms' => 2,
+            'bathrooms' => 1,
+            'square_meters_contruction' => 80,
+            'levels' => 1,
+            'transaction_type_id' => 1,
+            'property_status_id' => 1,
+            'property_type_id' => [1],
+        ], $overrides);
+    }
+
+    /** @test */
+    public function owner_can_mark_own_property_as_rented()
+    {
+        \DB::table('property_status')->insert(['id' => 2, 'name' => 'Rentada']);
+
+        $response = $this->actingAs($this->owner)
+            ->post('/propiedad/' . $this->property->id . '/guardar',
+                $this->validPayload(['property_status_id' => 2]));
+
+        $response->assertSessionHasNoErrors();
+        $this->assertSame(2, (int) $this->property->fresh()->property_status_id);
+    }
+
+    /** @test */
+    public function owner_cannot_set_a_status_outside_the_whitelist()
+    {
+        \DB::table('property_status')->insert(['id' => 4, 'name' => 'Cancelada']);
+
+        $this->actingAs($this->owner)
+            ->post('/propiedad/' . $this->property->id . '/guardar',
+                $this->validPayload(['property_status_id' => 4]));
+
+        // El estatus se descarta en silencio: la propiedad sigue Disponible.
+        $this->assertSame(1, (int) $this->property->fresh()->property_status_id);
     }
 }

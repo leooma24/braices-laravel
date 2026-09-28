@@ -62,9 +62,13 @@
         <div class="row g-4 mt-2 mb-2">
             @foreach ($list as $property)
                 <div class="col-12 col-md-6 col-lg-4">
-                    <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }}">
-                        <a href="{{ route('property', $property->slug) }}" class="d-block">
+                    @php($soldOut = $property->soldOutLabel())
+                    <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }} {{ $soldOut ? 'card-sold-out' : '' }}">
+                        <a href="{{ route('property', $property->slug) }}" class="d-block position-relative">
                             <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy">
+                            @if($soldOut)
+                                <span class="sold-out-ribbon">{{ $soldOut }}</span>
+                            @endif
                         </a>
 
                         @if($property->isFeaturedNow())

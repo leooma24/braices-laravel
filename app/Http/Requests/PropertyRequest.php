@@ -43,6 +43,7 @@ class PropertyRequest extends FormRequest
             'youtube' => 'nullable|string|max:255',
             'property_status_id' => 'required|integer',
             'year_built' => 'nullable|integer',
+            'rate_period' => 'nullable|in:noche,mes',
             'lat' => 'nullable|numeric',
             'long' => 'nullable|numeric',
         ];

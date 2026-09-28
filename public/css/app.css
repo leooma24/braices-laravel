@@ -556,6 +556,39 @@ footer .nav-link:hover {
     padding: 0.45rem 0.85rem !important;
 }
 
+/* Propiedades fuera del mercado (Rentada / Vendida): la card se publica
+   igual pero atenuada y con un sello diagonal sobre la foto. */
+.card-sold-out .card-img-top {
+    filter: grayscale(0.55) brightness(0.82);
+}
+.card-sold-out .mc-price {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+.badge-sold-out {
+    background: #b3261e !important;
+    color: #fff !important;
+    border: 0;
+}
+.sold-out-ribbon {
+    position: absolute;
+    top: 1.1rem;
+    left: -2.6rem;
+    transform: rotate(-38deg);
+    width: 11rem;
+    text-align: center;
+    background: #b3261e;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 2;
+}
+
 /* Mis Propiedades: fila de acciones de la card (Editar + iconos).
    No confundir con .property-actions (action bar del detalle). */
 .owner-actions {

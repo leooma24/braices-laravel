@@ -43,6 +43,7 @@ class CheckProdSchema extends Command
             // Solo las nuevas que agregamos en esta sesión.
             'is_reservable', 'max_guests', 'price_per_night', 'cleaning_fee',
             'check_in_time', 'check_out_time', 'is_featured', 'featured_until',
+            'rate_period',
         ],
         'payments' => [
             'reservation_id', 'amount', 'provider',

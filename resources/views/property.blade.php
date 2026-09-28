@@ -171,9 +171,16 @@
                         @foreach ($property->propertyTypes as $propertyType)
                             <span class="badge">{{ $propertyType->name }}</span>
                         @endforeach
-                        <span class="badge">{{ $property->status->name }}</span>
+                        <span class="badge {{ $property->isAvailable() ? '' : 'badge-sold-out' }}">{{ $property->status->name }}</span>
                         <span class="badge badge-views"><i class="fas fa-eye me-1"></i>{{ $property->views }} vistas</span>
                     </div>
+
+                    @if(!$property->isAvailable())
+                        <div class="alert alert-secondary d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-circle-info"></i>
+                            <span>Esta propiedad ya fue {{ strtolower($property->soldOutLabel() ?? $property->status->name) }} y no está disponible. Puedes ver otras opciones en <a href="{{ route('properties') }}">nuestro catálogo</a>.</span>
+                        </div>
+                    @endif
 
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
                         <h2 class="card-title mb-0" style="font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em;">{{ $property->title }}</h2>
@@ -371,7 +378,7 @@
                             <div class="reservation-widget">
                                 <div>
                                     <span class="reservation-widget__price">${{ number_format($property->price_per_night) }}</span>
-                                    <span class="reservation-widget__per"> / noche</span>
+                                    <span class="reservation-widget__per"> / {{ $property->ratePeriod() }}</span>
                                 </div>
                                 <a href="{{ route('reservation.show', $property->slug) }}"
                                    class="btn btn-accent btn-lg w-100 mt-2">

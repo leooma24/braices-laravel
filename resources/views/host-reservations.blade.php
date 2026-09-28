@@ -38,7 +38,7 @@
                     </div>
                     <p class="text-muted small mb-2">
                         {{ $reservation->check_in_date->format('d/m/Y') }} → {{ $reservation->check_out_date->format('d/m/Y') }}
-                        · {{ $reservation->nights }} {{ $reservation->nights === 1 ? 'noche' : 'noches' }}
+                        · {{ $reservation->nights }} {{ $reservation->property->ratePeriodUnit((int) $reservation->nights) }}
                         · {{ $reservation->guests }} {{ $reservation->guests === 1 ? 'huésped' : 'huéspedes' }}
                     </p>
                     <p class="mb-0"><strong>Monto:</strong> ${{ number_format((float) $reservation->total_price, 2) }} MXN</p>

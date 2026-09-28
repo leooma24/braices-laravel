@@ -44,6 +44,7 @@ class Property extends Model
         'is_reservable',
         'max_guests',
         'price_per_night',
+        'rate_period',
         'cleaning_fee',
         'check_in_time',
         'check_out_time',
@@ -106,6 +107,57 @@ class Property extends Model
     public function status()
     {
         return $this->hasOne(PropertyStatusModel::class, 'id', 'property_status_id');
+    }
+
+    /**
+     * La propiedad sigue en el mercado (estatus Disponible). Las Rentadas y
+     * Vendidas se siguen publicando, pero con sello y sin botón de contacto.
+     */
+    public function isAvailable(): bool
+    {
+        return (int) $this->property_status_id === 1;
+    }
+
+    /**
+     * Etiqueta del sello para las que ya salieron del mercado: "Rentada" /
+     * "Vendida". Devuelve null cuando la propiedad sigue disponible.
+     */
+    /**
+     * Periodo de cobro de la reservación: 'noche' (default) o 'mes'.
+     */
+    public function ratePeriod(): string
+    {
+        return $this->rate_period === 'mes' ? 'mes' : 'noche';
+    }
+
+    public function isMonthlyRate(): bool
+    {
+        return $this->ratePeriod() === 'mes';
+    }
+
+    /** "por noche" / "por mes" para las etiquetas públicas. */
+    public function ratePeriodLabel(): string
+    {
+        return $this->isMonthlyRate() ? 'por mes' : 'por noche';
+    }
+
+    /** "noche"/"noches" o "mes"/"meses" según la cantidad. */
+    public function ratePeriodUnit(int $count): string
+    {
+        if ($this->isMonthlyRate()) {
+            return $count === 1 ? 'mes' : 'meses';
+        }
+
+        return $count === 1 ? 'noche' : 'noches';
+    }
+
+    public function soldOutLabel(): ?string
+    {
+        return match ((int) $this->property_status_id) {
+            2 => 'Rentada',
+            3 => 'Vendida',
+            default => null,
+        };
     }
 
     public function user()

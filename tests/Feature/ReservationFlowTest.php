@@ -132,8 +132,8 @@ class ReservationFlowTest extends TestCase
         $response = $this->actingAs($this->guest)
             ->post('/reservaciones', [
                 'property_id' => $this->property->id,
-                'check_in' => '2026-09-01',
-                'check_out' => '2026-09-04',
+                'check_in' => now()->addDays(30)->toDateString(),
+                'check_out' => now()->addDays(33)->toDateString(),
                 'guests' => 2,
             ]);
 
@@ -154,8 +154,8 @@ class ReservationFlowTest extends TestCase
         Reservation::create([
             'property_id' => $this->property->id,
             'user_id' => $this->guest->id,
-            'check_in_date' => '2026-09-10',
-            'check_out_date' => '2026-09-13',
+            'check_in_date' => now()->addDays(40)->toDateString(),
+            'check_out_date' => now()->addDays(43)->toDateString(),
             'guests' => 2,
             'status' => ReservationStatus::Confirmada,
             'nights' => 3,
@@ -169,8 +169,8 @@ class ReservationFlowTest extends TestCase
         $response = $this->actingAs($other)
             ->post('/reservaciones', [
                 'property_id' => $this->property->id,
-                'check_in' => '2026-09-11',
-                'check_out' => '2026-09-14',
+                'check_in' => now()->addDays(41)->toDateString(),
+                'check_out' => now()->addDays(44)->toDateString(),
                 'guests' => 1,
             ]);
 
@@ -182,8 +182,8 @@ class ReservationFlowTest extends TestCase
     {
         $response = $this->post('/reservaciones', [
             'property_id' => $this->property->id,
-            'check_in' => '2026-09-01',
-            'check_out' => '2026-09-04',
+            'check_in' => now()->addDays(30)->toDateString(),
+            'check_out' => now()->addDays(33)->toDateString(),
             'guests' => 1,
         ]);
 
@@ -262,5 +262,58 @@ class ReservationFlowTest extends TestCase
         $this->artisan('reservations:complete-past')->assertSuccessful();
 
         $this->assertEquals('completada', $reservation->fresh()->status->value);
+    }
+
+    /** @test */
+    public function monthly_property_is_quoted_per_month_not_per_night()
+    {
+        $this->property->rate_period = 'mes';
+        $this->property->price_per_night = 8000; // renta mensual
+        $this->property->cleaning_fee = 500;
+        $this->property->save();
+
+        $quote = app(ReservationPricingService::class)->quote(
+            $this->property->fresh(),
+            '2027-01-15',
+            '2027-03-15'
+        );
+
+        $this->assertSame('mes', $quote['period']);
+        $this->assertSame(2, $quote['units']);
+        $this->assertSame('16000.00', $quote['subtotal']);
+        $this->assertSame('16500.00', $quote['total']);
+    }
+
+    /** @test */
+    public function monthly_quote_rounds_a_partial_month_up()
+    {
+        $this->property->rate_period = 'mes';
+        $this->property->price_per_night = 8000;
+        $this->property->cleaning_fee = 0;
+        $this->property->save();
+
+        // Un mes y cinco días se cobra como dos meses completos.
+        $quote = app(ReservationPricingService::class)->quote(
+            $this->property->fresh(),
+            '2027-01-15',
+            '2027-02-20'
+        );
+
+        $this->assertSame(2, $quote['units']);
+        $this->assertSame('16000.00', $quote['subtotal']);
+    }
+
+    /** @test */
+    public function nightly_property_keeps_being_quoted_per_night()
+    {
+        $quote = app(ReservationPricingService::class)->quote(
+            $this->property->fresh(),
+            '2027-01-10',
+            '2027-01-13'
+        );
+
+        $this->assertSame('noche', $quote['period']);
+        $this->assertSame(3, $quote['units']);
+        $this->assertSame('4500.00', $quote['subtotal']);
     }
 }

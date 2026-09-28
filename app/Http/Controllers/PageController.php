@@ -130,7 +130,11 @@ class PageController extends Controller
             }
         }
 
-        $properties = Property::where('is_reservable', true)->paginate(20);
+        // Solo se ofrecen para reservar las que siguen Disponibles: una
+        // propiedad marcada Rentada no debe aceptar nuevas estancias.
+        $properties = Property::where('is_reservable', true)
+            ->where('property_status_id', 1)
+            ->paginate(20);
         return view('reservations', compact('properties', 'days'));
     }
 }

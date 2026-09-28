@@ -350,10 +350,10 @@
 
                                         @if(isset($property->id))
                                             <div class="col-xs-12 col-md-6 mb-3">
-                                                <select name="property_status_id" class="form-select p-3  @error('property_status_id') {{ 'is-invalid' }} @enderror"
+                                                <label for="property_status_id" class="form-label mb-1">Estatus de la propiedad</label>
+                                                <select name="property_status_id" id="property_status_id" class="form-select p-3  @error('property_status_id') {{ 'is-invalid' }} @enderror"
                                                     aria-label="Estatus"
                                                     aria-describedby="invalidStatus">
-                                                    <option value="">Estatus</option>
                                                     @foreach ($status as $statu)
                                                         <option value="{{ $statu->id }}"
                                                             {{ isset($property->property_status_id) && $statu->id == $property->property_status_id ? 'selected' : ($statu->id == old('property_status_id') ? 'selected' : '' ) }}>
@@ -365,6 +365,7 @@
                                                         {{ $message }}
                                                     </div>
                                                 @enderror
+                                                <small class="text-muted">Al marcarla como Rentada o Vendida sigue visible en el sitio, pero con el sello correspondiente y sin botón de contacto.</small>
                                             </div>
                                         @else
                                             {{-- Nueva propiedad: el estatus se asigna automáticamente como Activa (id=1) en el controlador. --}}
@@ -471,10 +472,20 @@
                                                 value="{{ $property->max_guests ?? old('max_guests') }}" />
                                         </div>
 
+                                        @php($ratePeriod = old('rate_period', $property->rate_period ?? 'noche'))
+                                        <div class="col-xs-12 col-md-6 mb-3">
+                                            <label for="rate_period" class="form-label mb-1">Se cobra por</label>
+                                            <select name="rate_period" id="rate_period" class="form-select p-3">
+                                                <option value="noche" {{ $ratePeriod === 'mes' ? '' : 'selected' }}>Noche</option>
+                                                <option value="mes" {{ $ratePeriod === 'mes' ? 'selected' : '' }}>Mes</option>
+                                            </select>
+                                            <small class="text-muted">Usa "Mes" para departamentos que se rentan mensualmente.</small>
+                                        </div>
+
                                         <div class="col-xs-12 col-md-6">
                                             <x-form-input
                                                 name="price_per_night"
-                                                label="Precio por noche"
+                                                label="{{ $ratePeriod === 'mes' ? 'Precio por mes' : 'Precio por noche' }}"
                                                 type="number"
                                                 value="{{ $property->price_per_night ?? old('price_per_night') }}" />
                                         </div>
@@ -685,6 +696,19 @@
                 @endif
             });
         </script>
+
+<script>
+    // La etiqueta del precio de reservación sigue al periodo elegido.
+    document.addEventListener('DOMContentLoaded', function () {
+        var periodSelect = document.getElementById('rate_period');
+        var priceLabel = document.querySelector('label[for="price_per_night"]');
+        if (!periodSelect || !priceLabel) { return; }
+
+        periodSelect.addEventListener('change', function () {
+            priceLabel.textContent = this.value === 'mes' ? 'Precio por mes' : 'Precio por noche';
+        });
+    });
+</script>
 
 <script async defer
 src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap">

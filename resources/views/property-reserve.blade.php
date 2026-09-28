@@ -60,7 +60,7 @@
                 <div class="card shadow-sm position-sticky" style="top: 1rem;">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-baseline mb-3">
-                            <span><strong class="fs-4">${{ number_format($property->price_per_night ?? 0, 0) }}</strong> <span class="text-muted">por noche</span></span>
+                            <span><strong class="fs-4">${{ number_format($property->price_per_night ?? 0, 0) }}</strong> <span class="text-muted">{{ $property->ratePeriodLabel() }}</span></span>
                         </div>
 
                         @auth
@@ -209,8 +209,12 @@
                     }
 
                     document.getElementById('quoteError').classList.add('d-none');
+                    const units = data.units ?? data.nights;
+                    const unitLabel = (data.period === 'mes')
+                        ? (units === 1 ? 'mes' : 'meses')
+                        : (units === 1 ? 'noche' : 'noches');
                     document.getElementById('quoteNightsLabel').textContent =
-                        `${formatMoney(data.subtotal / data.nights)} × ${data.nights} ${data.nights === 1 ? 'noche' : 'noches'}`;
+                        `${formatMoney(data.subtotal / units)} × ${units} ${unitLabel}`;
                     document.getElementById('quoteSubtotal').textContent = formatMoney(data.subtotal);
                     document.getElementById('quoteCleaning').textContent = formatMoney(data.cleaning_fee);
                     document.getElementById('quoteTotal').textContent = formatMoney(data.total);

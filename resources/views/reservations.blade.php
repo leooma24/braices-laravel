@@ -51,7 +51,7 @@
                             <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                                 <div>
                                     <span class="mc-price">${{ number_format($property->price_per_night ?? 0, 0) }}</span>
-                                    <small class="text-muted-2"> /noche</small>
+                                    <small class="text-muted-2"> /{{ $property->ratePeriod() }}</small>
                                 </div>
                                 <a href="{{ route('reservation.show', $property->slug) }}" class="btn btn-primary btn-sm">
                                     Reservar
