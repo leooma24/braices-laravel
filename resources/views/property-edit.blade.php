@@ -419,7 +419,37 @@
 
                                 <div class="tab-pane fade pt-3 show" id="map" role="tabpanel" aria-labelledby="map-tab" tabindex="0">
                                     <div class="col-xs-12">
+                                        <div class="row g-2 align-items-end mb-3">
+                                            <div class="col-12 col-lg-6">
+                                                <label for="map_search" class="form-label mb-1">Buscar dirección o lugar</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="map_search" autocomplete="off"
+                                                        placeholder="Ej. Blvd. Centenario 123, Los Mochis, Sinaloa">
+                                                    <button class="btn btn-primary" type="button" id="map_search_btn">
+                                                        <i class="fas fa-search"></i> Buscar
+                                                    </button>
+                                                </div>
+                                                <small class="text-muted">También puedes pegar coordenadas (ej. 25.791091, -108.995944) o un enlace de Google Maps.</small>
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label for="lat_input" class="form-label mb-1">Latitud</label>
+                                                <input type="text" class="form-control" id="lat_input" inputmode="decimal">
+                                            </div>
+                                            <div class="col-6 col-lg-2">
+                                                <label for="long_input" class="form-label mb-1">Longitud</label>
+                                                <input type="text" class="form-control" id="long_input" inputmode="decimal">
+                                            </div>
+                                            <div class="col-12 col-lg-2">
+                                                <button class="btn btn-outline-primary w-100" type="button" id="map_goto_btn">
+                                                    <i class="fas fa-crosshairs"></i> Ir a coordenadas
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="map_search_msg" class="small mb-2"></div>
                                         <div id="googleMap" style="height: 500px; width: 100%;"></div>
+                                        <small class="text-muted d-block mt-2">
+                                            Arrastra el pin para ajustar la ubicación exacta. Usa la rueda del ratón o los botones + / − para acercar.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -661,29 +691,135 @@ src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps
 </script>
 
 <script>
+    var braicesMap, braicesMarker, braicesGeocoder;
+
+    function braicesSetPosition(lat, lng, recenter) {
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+        if (isNaN(lat) || isNaN(lng)) { return false; }
+
+        var pos = { lat: lat, lng: lng };
+        braicesMarker.setPosition(pos);
+        if (recenter) {
+            braicesMap.setCenter(pos);
+            if (braicesMap.getZoom() < 16) { braicesMap.setZoom(17); }
+        }
+
+        document.getElementById('lat').value = lat;
+        document.getElementById('long').value = lng;
+        document.getElementById('lat_input').value = lat.toFixed(6);
+        document.getElementById('long_input').value = lng.toFixed(6);
+        return true;
+    }
+
+    function braicesMapMsg(text, isError) {
+        var el = document.getElementById('map_search_msg');
+        if (!el) { return; }
+        el.className = 'small mb-2 ' + (isError ? 'text-danger' : 'text-success');
+        el.textContent = text || '';
+    }
+
+    // Detecta coordenadas escritas a mano o dentro de un enlace de Google Maps
+    function braicesParseCoords(text) {
+        if (!text) { return null; }
+        var at = text.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+        if (at) { return { lat: parseFloat(at[1]), lng: parseFloat(at[2]) }; }
+
+        var q = text.match(/[?&](?:q|query|ll|center)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+        if (q) { return { lat: parseFloat(q[1]), lng: parseFloat(q[2]) }; }
+
+        var plain = text.trim().match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,; ]\s*(-?\d{1,3}(?:\.\d+)?)$/);
+        if (plain) { return { lat: parseFloat(plain[1]), lng: parseFloat(plain[2]) }; }
+
+        return null;
+    }
+
+    function braicesSearch() {
+        var term = document.getElementById('map_search').value.trim();
+        if (!term) { return; }
+
+        var coords = braicesParseCoords(term);
+        if (coords) {
+            if (braicesSetPosition(coords.lat, coords.lng, true)) {
+                braicesMapMsg('Ubicación fijada en las coordenadas indicadas.', false);
+            } else {
+                braicesMapMsg('Las coordenadas no son válidas.', true);
+            }
+            return;
+        }
+
+        braicesMapMsg('Buscando…', false);
+        braicesGeocoder.geocode({ address: term, region: 'mx' }, function (results, status) {
+            if (status === 'OK' && results[0]) {
+                var loc = results[0].geometry.location;
+                braicesSetPosition(loc.lat(), loc.lng(), true);
+                braicesMapMsg('Ubicación encontrada: ' + results[0].formatted_address, false);
+            } else {
+                braicesMapMsg('No se encontró la dirección. Intenta con más detalle o pega las coordenadas.', true);
+            }
+        });
+    }
+
     function initMap() {
-        // Configuración inicial del mapa
         var location = { lat: {{ $property->lat ?? 25.7910913 }}, lng: {{ $property->long ?? -108.9959443 }} };
-        var map = new google.maps.Map(document.getElementById('googleMap'), {
-            zoom: 14,
-            center: location
+
+        braicesMap = new google.maps.Map(document.getElementById('googleMap'), {
+            zoom: 17,
+            center: location,
+            gestureHandling: 'greedy',   // zoom con rueda sin tener que presionar Ctrl
+            scrollwheel: true,
+            zoomControl: true,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true,
+            scaleControl: true
         });
 
-        // Opcional: agregar un marcador
-        var marker = new google.maps.Marker({
+        braicesMarker = new google.maps.Marker({
             position: location,
-            map: map,
+            map: braicesMap,
             draggable: true,
+            title: 'Arrastra para ajustar la ubicación'
         });
 
-        google.maps.event.addListener(marker, 'dragend', function(event) {
-            var newLat = event.latLng.lat();
-            var newLng = event.latLng.lng();
+        braicesGeocoder = new google.maps.Geocoder();
 
-            // Por ejemplo, puedes enviar las coordenadas a un input oculto para enviarlas al backend
-            document.getElementById('lat').value = newLat;
-            document.getElementById('long').value = newLng;
+        document.getElementById('lat_input').value = location.lat.toFixed(6);
+        document.getElementById('long_input').value = location.lng.toFixed(6);
+
+        braicesMarker.addListener('dragend', function (event) {
+            braicesSetPosition(event.latLng.lat(), event.latLng.lng(), false);
+            braicesMapMsg('Ubicación actualizada con el pin.', false);
         });
+
+        // Un clic en el mapa también mueve el pin
+        braicesMap.addListener('click', function (event) {
+            braicesSetPosition(event.latLng.lat(), event.latLng.lng(), false);
+            braicesMapMsg('Ubicación actualizada con el clic en el mapa.', false);
+        });
+
+        document.getElementById('map_search_btn').addEventListener('click', braicesSearch);
+        document.getElementById('map_search').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); braicesSearch(); }
+        });
+
+        document.getElementById('map_goto_btn').addEventListener('click', function () {
+            var ok = braicesSetPosition(
+                document.getElementById('lat_input').value,
+                document.getElementById('long_input').value,
+                true
+            );
+            braicesMapMsg(ok ? 'Mapa centrado en las coordenadas.' : 'Escribe latitud y longitud válidas.', !ok);
+        });
+
+        // El mapa vive dentro de una pestaña oculta: hay que redibujarlo al mostrarla
+        var mapTab = document.getElementById('map-tab');
+        if (mapTab) {
+            mapTab.addEventListener('shown.bs.tab', function () {
+                google.maps.event.trigger(braicesMap, 'resize');
+                braicesMap.setCenter(braicesMarker.getPosition());
+            });
+        }
     }
 </script>
 
