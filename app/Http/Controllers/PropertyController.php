@@ -62,12 +62,29 @@ class PropertyController extends Controller
         if (!empty($data['precio_maximo'])) {
             $list->where('price', '<=', $data['precio_maximo']);
         }
+        // Busqueda libre por ubicacion: no habia forma de filtrar por
+        // ciudad ni colonia, que es el primer filtro que usa cualquiera
+        // buscando casa.
+        if (!empty($data['ubicacion'])) {
+            $term = '%' . trim($data['ubicacion']) . '%';
+            $list->where(function ($q) use ($term) {
+                $q->where('address', 'like', $term)
+                    ->orWhere('city', 'like', $term)
+                    ->orWhere('title', 'like', $term);
+            });
+        }
         // Featured primero, despues por id desc (mas recientes)
-        // Disponibles primero, luego destacadas, luego las mas recientes.
+        // Disponibles primero, luego destacadas. El ultimo criterio lo
+        // elige quien busca.
         $list->orderByRaw('CASE WHEN property_status_id = 1 THEN 0 ELSE 1 END')
-            ->orderByDesc('is_featured')
-            ->orderByDesc('id');
-        $list = $list->paginate($request->get('per_page', 15));
+            ->orderByDesc('is_featured');
+
+        match ($data['orden'] ?? 'recientes') {
+            'precio_asc' => $list->orderBy('price'),
+            'precio_desc' => $list->orderByDesc('price'),
+            default => $list->orderByDesc('id'),
+        };
+        $list = $list->paginate($request->get('per_page', 15))->withQueryString();
 
         $types = PropertyTypeModel::all();
         $transactions = TransactionTypeModel::all();

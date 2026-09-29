@@ -20,8 +20,15 @@
         <div class="filters filters--floating">
             <form action="{{ route('properties') }}" method="GET">
                 <div class="row g-3 align-items-end">
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="form-label small text-muted-2 mb-1">Tipo de propiedad</label>
+                    <div class="col-12 col-lg-3">
+                        <label for="ubicacion" class="form-label small text-muted-2 mb-1">Ubicación</label>
+                        <input id="ubicacion" name="ubicacion" type="search" class="form-control"
+                            value="{{ $data['ubicacion'] ?? '' }}"
+                            placeholder="Ciudad, colonia o calle…">
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label for="tipo" class="form-label small text-muted-2 mb-1">Tipo de propiedad</label>
                         <select id="tipo" name="tipo" class="form-select">
                             <option value="">Todos los tipos</option>
                             @foreach ($types as $type)
@@ -30,8 +37,8 @@
                         </select>
                     </div>
 
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="form-label small text-muted-2 mb-1">Transacción</label>
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <label for="tipo_transaccion" class="form-label small text-muted-2 mb-1">Transacción</label>
                         <select id="tipo_transaccion" name="tipo_transaccion" class="form-select">
                             <option value="">Cualquiera</option>
                             @foreach ($transactions as $transaction)
@@ -41,23 +48,84 @@
                     </div>
 
                     <div class="col-6 col-lg-2">
-                        <label class="form-label small text-muted-2 mb-1">Precio mínimo</label>
-                        <input id="precio_minimo" name="precio_minimo" value="{{ $data['precio_minimo'] ?? '' }}" type="number" class="form-control" placeholder="$0">
+                        <label for="precio_minimo" class="form-label small text-muted-2 mb-1">Desde</label>
+                        <input id="precio_minimo" name="precio_minimo" value="{{ $data['precio_minimo'] ?? '' }}" type="number" inputmode="numeric" class="form-control" placeholder="$0">
                     </div>
 
                     <div class="col-6 col-lg-2">
-                        <label class="form-label small text-muted-2 mb-1">Precio máximo</label>
-                        <input id="precio_maximo" name="precio_maximo" value="{{ $data['precio_maximo'] ?? '' }}" type="number" class="form-control" placeholder="Sin límite">
+                        <label for="precio_maximo" class="form-label small text-muted-2 mb-1">Hasta</label>
+                        <input id="precio_maximo" name="precio_maximo" value="{{ $data['precio_maximo'] ?? '' }}" type="number" inputmode="numeric" class="form-control" placeholder="Sin tope">
                     </div>
 
-                    <div class="col-12 col-lg-2">
+                    <div class="col-12 col-lg-1">
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>Buscar
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <span class="d-lg-none ms-2">Buscar</span>
                         </button>
                     </div>
                 </div>
             </form>
         </div>
+
+        {{-- Resumen de la busqueda: cuantos resultados hay, que filtros estan
+             puestos (y como quitarlos de a uno) y con que criterio se ordena. --}}
+        @php
+            $activeFilters = [];
+            if (!empty($data['ubicacion'])) {
+                $activeFilters[] = ['label' => $data['ubicacion'], 'key' => 'ubicacion'];
+            }
+            if (!empty($data['tipo'])) {
+                $activeFilters[] = ['label' => optional($types->firstWhere('id', (int) $data['tipo']))->name, 'key' => 'tipo'];
+            }
+            if (!empty($data['tipo_transaccion'])) {
+                $activeFilters[] = ['label' => optional($transactions->firstWhere('id', (int) $data['tipo_transaccion']))->name, 'key' => 'tipo_transaccion'];
+            }
+            if (!empty($data['precio_minimo'])) {
+                $activeFilters[] = ['label' => 'Desde $' . number_format((float) $data['precio_minimo']), 'key' => 'precio_minimo'];
+            }
+            if (!empty($data['precio_maximo'])) {
+                $activeFilters[] = ['label' => 'Hasta $' . number_format((float) $data['precio_maximo']), 'key' => 'precio_maximo'];
+            }
+            $orden = $data['orden'] ?? 'recientes';
+        @endphp
+
+        <div class="results-bar">
+            <p class="results-bar__count" aria-live="polite">
+                <strong>{{ number_format($list->total()) }}</strong>
+                {{ $list->total() === 1 ? 'propiedad encontrada' : 'propiedades encontradas' }}
+            </p>
+
+            <form action="{{ route('properties') }}" method="GET" class="results-bar__sort">
+                @foreach (['ubicacion', 'tipo', 'tipo_transaccion', 'precio_minimo', 'precio_maximo'] as $keep)
+                    @if (!empty($data[$keep]))
+                        <input type="hidden" name="{{ $keep }}" value="{{ $data[$keep] }}">
+                    @endif
+                @endforeach
+                <label for="orden" class="form-label small text-muted-2 mb-0">Ordenar por</label>
+                <select id="orden" name="orden" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="recientes" {{ $orden === 'recientes' ? 'selected' : '' }}>Más recientes</option>
+                    <option value="precio_asc" {{ $orden === 'precio_asc' ? 'selected' : '' }}>Precio: menor a mayor</option>
+                    <option value="precio_desc" {{ $orden === 'precio_desc' ? 'selected' : '' }}>Precio: mayor a menor</option>
+                </select>
+                <noscript><button type="submit" class="btn btn-sm btn-outline-primary">Aplicar</button></noscript>
+            </form>
+        </div>
+
+        @if (count($activeFilters))
+            <div class="active-filters">
+                @foreach ($activeFilters as $filter)
+                    @if ($filter['label'])
+                        <a class="active-filters__chip"
+                           href="{{ route('properties', collect($data)->except($filter['key'], 'page')->filter()->all()) }}">
+                            {{ $filter['label'] }}
+                            <span aria-hidden="true">&times;</span>
+                            <span class="visually-hidden">Quitar filtro</span>
+                        </a>
+                    @endif
+                @endforeach
+                <a class="active-filters__clear" href="{{ route('properties') }}">Limpiar todo</a>
+            </div>
+        @endif
 
         <div class="row g-4 mt-0 mb-2">
             @foreach ($list as $property)

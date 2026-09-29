@@ -2124,3 +2124,61 @@ footer .nav-link:hover {
 
 /* El liston de Rentada/Vendida vive dentro de la media, que ya recorta. */
 .card-sold-out .property-card__media img { filter: grayscale(0.55) brightness(0.82); }
+
+/* Barra de resultados: conteo + orden */
+.results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.results-bar__count {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9375rem;
+}
+.results-bar__count strong {
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.results-bar__sort {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.results-bar__sort .form-select { width: auto; min-width: 12rem; }
+
+/* Chips de filtros aplicados: se ve que esta puesto y se quita de a uno. */
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+.active-filters__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    text-decoration: none;
+    transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease);
+}
+.active-filters__chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}
+.active-filters__chip span[aria-hidden] { font-size: 1.05rem; line-height: 1; opacity: 0.6; }
+.active-filters__chip:hover span[aria-hidden] { opacity: 1; }
+.active-filters__clear {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    text-decoration: underline;
+}
