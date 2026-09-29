@@ -5,6 +5,18 @@
 
     RewriteEngine On
 
+    # Forzar HTTPS. El host servia http:// en claro con 200, asi que el
+    # login y los formularios de prospectos podian viajar sin cifrar.
+    # HTTP_X_FORWARDED_PROTO cubre el caso de proxy/CDN delante de Apache.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Canonico sin www: antes www y sin www respondian 200 las dos, lo que
+    # Google cuenta como contenido duplicado.
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -18,4 +30,12 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    # HSTS: un anio, solo se activa una vez que el redirect a HTTPS ya opera.
+    Header always set Strict-Transport-Security "max-age=31536000"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
