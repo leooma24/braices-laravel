@@ -485,7 +485,7 @@
 {!! NoCaptcha::renderJs() !!}
 
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&loading=async&callback=initMap">
 </script>
 
 <script>
@@ -493,8 +493,15 @@ src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps
         // Configuración inicial del mapa
         var location = { lat: {{ $property->lat }}, lng: {{ $property->long }} };
         var map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 14,
-            center: location
+            zoom: 16,
+            center: location,
+            // Sin esto la rueda del raton solo hacia scroll de la pagina:
+            // habia que mantener Ctrl para acercar.
+            gestureHandling: 'greedy',
+            zoomControl: true,
+            mapTypeControl: true,
+            streetViewControl: true,
+            fullscreenControl: true
         });
 
         // Opcional: agregar un marcador
