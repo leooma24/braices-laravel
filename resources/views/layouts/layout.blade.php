@@ -63,6 +63,7 @@
 </head>
 
 <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="myToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
@@ -208,9 +209,9 @@
     </div>
 
 
-    <div class="main-content mb-5">
+    <main id="contenido" class="main-content mb-5" tabindex="-1">
         @yield('content')
-    </div>
+    </main>
 
 
     <div class="container">

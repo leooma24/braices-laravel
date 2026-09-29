@@ -140,7 +140,7 @@ hr { color: var(--color-border); opacity: 1; }
     font-weight: 600;
     border-radius: var(--radius-md);
     padding: 0.625rem 1.25rem;
-    transition: all var(--duration) var(--ease);
+    transition: background-color var(--duration) var(--ease), border-color var(--duration) var(--ease), color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
     border-width: 1.5px;
     letter-spacing: 0.005em;
 }
@@ -277,7 +277,7 @@ hr { color: var(--color-border); opacity: 1; }
     padding: 0.5rem 0.85rem;
     border-radius: var(--radius-md);
     border-bottom: none;
-    transition: all var(--duration) var(--ease);
+    transition: background-color var(--duration) var(--ease), color var(--duration) var(--ease);
 }
 .navbar-nav .nav-link:hover {
     color: var(--color-primary);
@@ -787,7 +787,7 @@ footer .nav-link:hover {
     justify-content: center;
     font-size: 1.6rem;
     margin-bottom: 1rem;
-    transition: all var(--duration) var(--ease);
+    transition: background-color var(--duration) var(--ease), color var(--duration) var(--ease), transform var(--duration) var(--ease);
 }
 .category-card:hover .category-icon {
     background: var(--color-primary);
@@ -2181,4 +2181,52 @@ footer .nav-link:hover {
     font-size: 0.8125rem;
     color: var(--color-text-muted);
     text-decoration: underline;
+}
+
+/* =============================================================
+   Accesibilidad: foco visible y movimiento reducido
+   ============================================================= */
+
+/* Solo habia un :focus-visible en toda la hoja, asi que navegar con
+   teclado era practicamente a ciegas. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm, 4px);
+}
+
+/* Enlace para saltar al contenido: invisible hasta que recibe foco. */
+.skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 2000;
+    padding: 0.7rem 1.1rem;
+    background: var(--color-primary-dark);
+    color: #fff;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    transition: top 150ms var(--ease);
+}
+.skip-link:focus { top: 0; color: #fff; }
+
+/* Respetar a quien pide menos movimiento en su sistema. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .fade-in-up { animation: none; }
+    .property-card:hover .property-card__media img { transform: none; }
+    .card:has(a):hover { transform: none; }
 }
