@@ -423,7 +423,7 @@
 
                     <div class="send-message text-start" id="contact-form">
                         @if (session('success'))
-                            <div class="alert alert-success" role="alert">
+                            <div class="alert alert-success" role="status" aria-live="polite">
                                 {{ session('success') }}
                             </div>
                         @endif

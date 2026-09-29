@@ -10,7 +10,7 @@
                 <h1 class="h3 mb-4">Confirmar reservación</h1>
 
                 @if(session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
+                    <div class="alert alert-danger" role="alert" aria-live="assertive">{{ session('error') }}</div>
                 @endif
 
                 <div class="card mb-3">

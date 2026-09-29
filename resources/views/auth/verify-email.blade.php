@@ -3,7 +3,7 @@
 @section('content')
 <div class="container text-center p-5 my-5">
     @if (session('success'))
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success" role="status" aria-live="polite">
             {{ session('success') }}
         </div>
     @endif
@@ -15,7 +15,7 @@
 
 
     @if (session('status'))
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success" role="status" aria-live="polite">
             {{ session('status') }}
         </div>
     @endif

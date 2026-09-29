@@ -22,7 +22,7 @@
         </div>
 
         @if ($errors->any())
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert" aria-live="assertive">
                 <div class="d-flex align-items-start gap-2 mb-2">
                     <i class="fas fa-exclamation-triangle mt-1"></i>
                     <strong>Revisa los siguientes campos:</strong>
@@ -411,7 +411,7 @@
                                             @foreach($property->images as $image)
                                                 <div class="col-xs-12 col-md-4 position-relative">
                                                     <img class="card-img-top" src="{{ $image->photo ?? '' }}" />
-                                                    <a href="{{ route('property.delete.image', [$property->id, $image->id]) }}" class="position-absolute top-0 end-0 btn btn-danger mt-2 me-3"><i class="fa fa-trash"></i>  </a>
+                                                    <a href="{{ route('property.delete.image', [$property->id, $image->id]) }}" class="position-absolute top-0 end-0 btn btn-danger mt-2 me-3" aria-label="Eliminar esta imagen"><i class="fa fa-trash" aria-hidden="true"></i></a>
                                                 </div>
                                             @endforeach
                                         @endif

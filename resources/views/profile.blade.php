@@ -20,7 +20,7 @@
         <div class="row ">
             @if ($errors->any())
             <div class="col-xs-12">
-                <div class="alert alert-danger mt-3">
+                <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">
                     <ul>
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -31,14 +31,14 @@
             @endif
             @if (session('success'))
             <div class="col-xs-12">
-                <div class="alert alert-success my-3">
+                <div class="alert alert-success my-3" role="status" aria-live="polite">
                     {{ session('success') }}
                 </div>
             </div>
             @endif
             @if (session('error'))
             <div class="col-xs-12">
-                <div class="alert alert-danger my-3">
+                <div class="alert alert-danger my-3" role="alert" aria-live="assertive">
                     {{ session('error') }}
                 </div>
             </div>

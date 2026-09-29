@@ -19,11 +19,11 @@
             <p class="auth-card__subtitle">Es gratis. Publica tu primera propiedad en minutos.</p>
 
             @if (session('error'))
-                <div class="alert alert-danger mb-3">{{ session('error') }}</div>
+                <div class="alert alert-danger mb-3" role="alert" aria-live="assertive">{{ session('error') }}</div>
             @endif
 
             @if ($errors->any())
-                <div class="alert alert-danger">
+                <div class="alert alert-danger" role="alert" aria-live="assertive">
                     <ul class="mb-0 ps-3">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

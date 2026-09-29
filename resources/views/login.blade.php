@@ -19,20 +19,20 @@
             <p class="auth-card__subtitle">Inicia sesión para administrar tus propiedades.</p>
 
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div class="alert alert-success alert-dismissible fade show" role="status" aria-live="polite">
                     {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="alert alert-danger mb-3">
+                <div class="alert alert-danger mb-3" role="alert" aria-live="assertive">
                     {{ session('error') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="alert alert-danger">
+                <div class="alert alert-danger" role="alert" aria-live="assertive">
                     <ul class="mb-0 ps-3">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

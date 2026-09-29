@@ -20,7 +20,7 @@
         <div class="contact-card">
             <div class="contact-card__body">
                 @if (session('success'))
-                    <div class="alert alert-success mb-4">
+                    <div class="alert alert-success mb-4" role="status" aria-live="polite">
                         <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
                     </div>
                 @endif
@@ -85,7 +85,7 @@
                             </div>
 
                             @if ($errors->has('g-recaptcha-response'))
-                                <div class="alert alert-danger small py-2">
+                                <div class="alert alert-danger small py-2" role="alert" aria-live="assertive">
                                     {{ $errors->first('g-recaptcha-response') }}
                                 </div>
                             @endif

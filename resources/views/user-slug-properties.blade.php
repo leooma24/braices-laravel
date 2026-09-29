@@ -141,10 +141,10 @@
                         <hr />
 
                         <div class="social-media d-flex justify-content-center">
-                            <a target="_blank" href="{{ $user->facebook }}" class="btn btn-white rounded-circle shadow"><i class="fab fa-facebook"></i></a>
-                            <a target="_blank" href="{{ $user->x }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fas fa-times"></i></a>
-                            <a target="_blank" href="{{ $user->instagram }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fab fa-instagram"></i></a>
-                            <a target="_blank" href="{{ $user->tiktok }}" class="btn btn-white rounded-circle ms-2 shadow"><i class="fab fa-tiktok"></i></a>
+                            <a target="_blank" rel="noopener" href="{{ $user->facebook }}" class="btn btn-white rounded-circle shadow" aria-label="Facebook de {{ $user->name }}"><i class="fab fa-facebook" aria-hidden="true"></i></a>
+                            <a target="_blank" rel="noopener" href="{{ $user->x }}" class="btn btn-white rounded-circle ms-2 shadow" aria-label="X de {{ $user->name }}"><i class="fas fa-times" aria-hidden="true"></i></a>
+                            <a target="_blank" rel="noopener" href="{{ $user->instagram }}" class="btn btn-white rounded-circle ms-2 shadow" aria-label="Instagram de {{ $user->name }}"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                            <a target="_blank" rel="noopener" href="{{ $user->tiktok }}" class="btn btn-white rounded-circle ms-2 shadow" aria-label="TikTok de {{ $user->name }}"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
                         </div>
 
                         <hr />
@@ -152,7 +152,7 @@
 
                     <div class="send-message">
                         @if (session('success'))
-                        <div class="alert alert-success" role="alert">
+                        <div class="alert alert-success" role="status" aria-live="polite">
                             {{ session('success') }}
                         </div>
 

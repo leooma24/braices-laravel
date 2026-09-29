@@ -262,7 +262,7 @@
        target="_blank" rel="noopener"
        class="whatsapp-fab"
        aria-label="Contactar por WhatsApp">
-        <i class="fab fa-whatsapp"></i>
+        <i class="fab fa-whatsapp" aria-hidden="true"></i>
     </a>
 
     <style>

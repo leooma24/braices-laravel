@@ -23,7 +23,7 @@
         </div>
 
         @if ($errors->any())
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert" aria-live="assertive">
                 <div class="d-flex align-items-start gap-2 mb-2">
                     <i class="fas fa-exclamation-triangle mt-1"></i>
                     <strong>Revisa los siguientes campos:</strong>
