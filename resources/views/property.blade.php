@@ -101,7 +101,7 @@
     <div class="property-gallery" data-bs-toggle="modal" data-bs-target="#galleryModal" role="button" tabindex="0">
         @if($heroSrc)
             <div class="property-gallery__cell">
-                <img src="{{ $heroSrc }}" alt="{{ $property->title }}" loading="eager">
+                <img src="{{ $heroSrc }}" alt="{{ $property->title }}" width="800" height="600" loading="eager" fetchpriority="high">
             </div>
         @elseif($thumbs->isNotEmpty())
             <div class="property-gallery__cell">
@@ -117,7 +117,7 @@
             @php $img = $thumbs[$i] ?? null; @endphp
             <div class="property-gallery__cell {{ !$img ? 'property-gallery__cell--placeholder' : '' }}">
                 @if($img)
-                    <img src="{{ $img->photo ?? $img->image_path }}" alt="{{ $property->title }} {{ $i+2 }}" loading="lazy">
+                    <img src="{{ $img->photo ?? $img->image_path }}" alt="{{ $property->title }} {{ $i+2 }}" width="400" height="300" loading="lazy">
                 @else
                     <i class="fas fa-image"></i>
                 @endif

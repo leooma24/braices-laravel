@@ -33,7 +33,7 @@
                 <div class="row g-0">
                     <div class="col-md-3">
                         @if($reservation->property->photo_main)
-                            <img src="{{ $reservation->property->photo_main }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ $reservation->property->title }}">
+                            <img src="{{ $reservation->property->photo_main }}" class="img-fluid rounded-start h-100" width="300" height="200" style="object-fit: cover;" alt="{{ $reservation->property->title }}">
                         @endif
                     </div>
                     <div class="col-md-9">

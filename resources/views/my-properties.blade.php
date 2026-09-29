@@ -52,7 +52,7 @@
                 <div class="col-12 col-md-6 col-lg-4">
                     <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }}">
                         <a href="{{ route('property', $property->slug) }}" class="d-block">
-                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy" style="height: 200px; object-fit: cover;">
+                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="200" loading="lazy" style="height: 200px; object-fit: cover;">
                         </a>
 
                         @if($property->isFeaturedNow())
