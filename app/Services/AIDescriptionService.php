@@ -21,11 +21,11 @@ class AIDescriptionService
      */
     public function generate(array $propertyData): string
     {
-        if (!env('ANTHROPIC_API_KEY')) {
+        if (!config('services.anthropic.api_key')) {
             throw new RuntimeException('ANTHROPIC_API_KEY no está configurado en .env');
         }
 
-        $client = Anthropic::client(env('ANTHROPIC_API_KEY'));
+        $client = Anthropic::client(config('services.anthropic.api_key'));
 
         $userPrompt = $this->buildUserPrompt($propertyData);
         $systemPrompt = $this->buildSystemPrompt();

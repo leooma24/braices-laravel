@@ -53,6 +53,15 @@ return [
         'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'descriptions_enabled' => filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    'deploy' => [
+        'token' => env('DEPLOY_TOKEN', ''),
+    ],
+
     'recaptcha' => [
         'sitekey' => env('NOCAPTCHA_SITEKEY'),
         'secret' => env('NOCAPTCHA_SECRET'),

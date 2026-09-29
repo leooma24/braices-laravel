@@ -373,7 +373,7 @@
                                         @endif
 
                                       <div class="col-xs-12 col-md-6">
-                                        @if(filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN))
+                                        @if(config('services.anthropic.descriptions_enabled'))
                                             <div class="d-flex justify-content-end mb-2">
                                                 <button type="button" id="aiDescriptionBtn" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-magic me-1"></i>Generar con IA
@@ -650,7 +650,7 @@
                 $('#state').change();
                 $('#zip').blur();
 
-                @if(filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN))
+                @if(config('services.anthropic.descriptions_enabled'))
                 $('#aiDescriptionBtn').on('click', function () {
                     const $btn = $(this);
                     const original = $btn.html();

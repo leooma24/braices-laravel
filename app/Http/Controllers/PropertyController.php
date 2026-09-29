@@ -363,7 +363,7 @@ class PropertyController extends Controller
      */
     public function aiDescription(Request $request, AIDescriptionService $ai)
     {
-        if (!filter_var(env('AI_DESCRIPTIONS_ENABLED', false), FILTER_VALIDATE_BOOLEAN)) {
+        if (!config('services.anthropic.descriptions_enabled')) {
             abort(404);
         }
 

@@ -12,7 +12,7 @@ class GeocodingService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiKey = env('GOOGLE_MAPS_API_KEY');
+        $this->apiKey = config('services.google_maps.api_key');
     }
 
     public function getCoordinates($address)

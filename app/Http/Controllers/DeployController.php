@@ -22,7 +22,7 @@ class DeployController extends Controller
     public function run(Request $request)
     {
         $token = (string) $request->query('token', '');
-        $configured = (string) env('DEPLOY_TOKEN', '');
+        $configured = (string) config('services.deploy.token', '');
 
         if ($configured === '') {
             return response('DEPLOY_TOKEN no está configurado en .env. Por seguridad, este endpoint está deshabilitado.', 503);
