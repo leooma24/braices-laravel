@@ -161,16 +161,16 @@
                         <form action="{{ route('contact.me') }}" method="POST">
                             @csrf
                             <div class="form-floating mb-3">
-                                <input type="text" name="name" class="form-control" id="name" placeholder="Nombre">
+                                <input type="text" autocomplete="name" name="name" class="form-control" id="name" placeholder="Nombre">
                                 <label for="name">Nombre</label>
                             </div>
                             <div class="form-floating mb-3">
-                                <input type="phone" name="phone_number" class="form-control" id="phone_number" placeholder="Teléfono">
-                                <label for="phohe_number">Teléfono</label>
+                                <input type="tel" inputmode="tel" autocomplete="tel" name="phone_number" class="form-control" id="phone_number" placeholder="Teléfono">
+                                <label for="phone_number">Teléfono</label>
                             </div>
 
                             <div class="form-floating mb-3">
-                                <input name="email" type="email" class="form-control" id="email" placeholder="Correo">
+                                <input name="email" type="email" autocomplete="email" spellcheck="false" class="form-control" id="email" placeholder="Correo">
                                 <label for="email">Correo</label>
                             </div>
 

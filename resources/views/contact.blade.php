@@ -56,20 +56,20 @@
                             @csrf
 
                             <div class="form-floating mb-3">
-                                <input type="text" name="name" id="name" class="form-control" placeholder="Nombre" value="{{ old('name') }}" required>
+                                <input type="text" name="name" id="name" autocomplete="name" class="form-control" placeholder="Nombre" value="{{ old('name') }}" required>
                                 <label for="name">Nombre</label>
                             </div>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <div class="form-floating">
-                                        <input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="{{ old('email') }}" required>
+                                        <input type="email" name="email" id="email" autocomplete="email" spellcheck="false" class="form-control" placeholder="Correo" value="{{ old('email') }}" required>
                                         <label for="email">Correo electrónico</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-floating">
-                                        <input type="text" name="phone" id="phone" class="form-control" placeholder="Teléfono" value="{{ old('phone') }}">
+                                        <input type="tel" inputmode="tel" name="phone" id="phone" autocomplete="tel" class="form-control" placeholder="Teléfono" value="{{ old('phone') }}">
                                         <label for="phone">Teléfono</label>
                                     </div>
                                 </div>

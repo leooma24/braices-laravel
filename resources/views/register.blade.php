@@ -53,7 +53,7 @@
                         <div class="form-floating">
                             <input id="first_name" type="text"
                                 class="form-control @error('first_name') is-invalid @enderror"
-                                name="first_name" placeholder="Nombre(s)"
+                                name="first_name" placeholder="Nombre(s)" autocomplete="given-name"
                                 value="{{ old('first_name') }}" required autofocus>
                             <label for="first_name">Nombre(s)</label>
                             @error('first_name')
@@ -65,7 +65,7 @@
                         <div class="form-floating">
                             <input id="last_name" type="text"
                                 class="form-control @error('last_name') is-invalid @enderror"
-                                name="last_name" placeholder="Apellido(s)"
+                                name="last_name" placeholder="Apellido(s)" autocomplete="family-name"
                                 value="{{ old('last_name') }}" required>
                             <label for="last_name">Apellido(s)</label>
                             @error('last_name')
@@ -78,7 +78,7 @@
                 <div class="form-floating mb-3">
                     <input id="email" type="email"
                         class="form-control @error('email') is-invalid @enderror"
-                        name="email" placeholder="Correo electrónico"
+                        name="email" placeholder="Correo electrónico" autocomplete="email" spellcheck="false"
                         value="{{ old('email') }}" required>
                     <label for="email">Correo electrónico</label>
                     @error('email')
@@ -91,7 +91,7 @@
                         <div class="form-floating">
                             <input id="password" type="password"
                                 class="form-control @error('password') is-invalid @enderror"
-                                name="password" placeholder="Contraseña" required>
+                                name="password" placeholder="Contraseña" autocomplete="new-password" required>
                             <label for="password">Contraseña</label>
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -101,7 +101,7 @@
                     <div class="col-md-6">
                         <div class="form-floating">
                             <input id="password-confirm" type="password" class="form-control"
-                                name="password_confirmation" placeholder="Confirmar" required>
+                                name="password_confirmation" placeholder="Confirmar" autocomplete="new-password" required>
                             <label for="password-confirm">Confirmar contraseña</label>
                         </div>
                     </div>
