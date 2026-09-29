@@ -59,47 +59,73 @@
             </form>
         </div>
 
-        <div class="row g-4 mt-2 mb-2">
+        <div class="row g-4 mt-0 mb-2">
             @foreach ($list as $property)
                 <div class="col-12 col-md-6 col-lg-4">
                     @php($soldOut = $property->soldOutLabel())
-                    <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }} {{ $soldOut ? 'card-sold-out' : '' }}">
-                        <a href="{{ route('property', $property->slug) }}" class="d-block position-relative">
-                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy">
+                    <article class="property-card card h-100 {{ $property->isFeaturedNow() ? 'card-featured' : '' }} {{ $soldOut ? 'card-sold-out' : '' }}">
+                        {{-- La media va en un contenedor de alto fijo: si falta la
+                             foto o el archivo se perdio, la tarjeta conserva su
+                             tamano en vez de encogerse y desacomodar la fila. --}}
+                        <a href="{{ route('property', $property->slug) }}" class="property-card__media" tabindex="-1" aria-hidden="true">
+                            @if($property->hasPhoto())
+                                <img src="{{ $property->photo_main }}" alt="" width="400" height="280" loading="lazy"
+                                     onerror="this.closest('.property-card__media').classList.add('is-empty'); this.remove();">
+                            @endif
+                            <span class="property-card__placeholder" aria-hidden="true">
+                                <i class="fas fa-camera"></i>
+                                <small>Sin fotografía</small>
+                            </span>
+
                             @if($soldOut)
                                 <span class="sold-out-ribbon">{{ $soldOut }}</span>
                             @endif
+
+                            @if($property->isFeaturedNow())
+                                <span class="badge featured-badge property-card__featured">
+                                    <i class="fas fa-star me-1" aria-hidden="true"></i>Destacada
+                                </span>
+                            @endif
+
+                            <div class="types property-card__tags">
+                                @foreach($property->propertyTypes as $propertyType)
+                                    <span class="badge">{{ $propertyType->name }}</span>
+                                @endforeach
+                                <span class="badge">{{ $property->transaction->name }}</span>
+                            </div>
                         </a>
 
-                        @if($property->isFeaturedNow())
-                            <span class="badge featured-badge position-absolute top-0 end-0 m-3">
-                                <i class="fas fa-star me-1"></i>Destacada
-                            </span>
-                        @endif
-
-                        <div class="types position-absolute top-0 start-0 m-3 d-flex flex-wrap gap-2">
-                            @foreach($property->propertyTypes as $propertyType)
-                                <span class="badge">{{ $propertyType->name }}</span>
-                            @endforeach
-                            <span class="badge">{{ $property->transaction->name }}</span>
-                        </div>
-
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title mb-1 text-truncate">{{ $property->title }}</h5>
-                            <p class="card-text mb-3 text-muted-2 small text-truncate">
-                                <i class="fas fa-map-marker-alt me-1 text-primary"></i>{{ $property->address }}
+                        <div class="card-body property-card__body">
+                            <h3 class="property-card__title">
+                                <a href="{{ route('property', $property->slug) }}">{{ $property->title }}</a>
+                            </h3>
+                            <p class="property-card__address">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ $property->address }}
                             </p>
 
-                            <div class="d-flex flex-wrap gap-3 small text-muted-2 mb-3">
-                                <span><i class="fas fa-bed me-1 text-primary"></i>{{ $property->bedrooms }} rec.</span>
-                                <span><i class="fas fa-bath me-1 text-primary"></i>{{ $property->bathrooms }} baños</span>
-                                <span><i class="fas fa-ruler-combined me-1 text-primary"></i>{{ number_format($property->square_feet) }} m²</span>
-                            </div>
+                            {{-- Un terreno mostraba "0 rec. 0 banos": ahora cada dato
+                                 aparece solo si tiene valor. --}}
+                            <ul class="property-card__specs">
+                                @if($property->bedrooms > 0)
+                                    <li><i class="fas fa-bed" aria-hidden="true"></i>{{ $property->bedrooms }} {{ $property->bedrooms == 1 ? 'rec.' : 'recs.' }}</li>
+                                @endif
+                                @if($property->bathrooms > 0)
+                                    <li><i class="fas fa-bath" aria-hidden="true"></i>{{ $property->bathrooms }} {{ $property->bathrooms == 1 ? 'baño' : 'baños' }}</li>
+                                @endif
+                                @if($property->square_feet > 0)
+                                    <li><i class="fas fa-ruler-combined" aria-hidden="true"></i>{{ number_format($property->square_feet) }} m²</li>
+                                @endif
+                            </ul>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                                <span class="mc-price">${{ number_format($property->price) }}</span>
+                            <div class="property-card__footer">
+                                <span class="property-card__price">
+                                    <span class="mc-price">${{ number_format($property->price) }}</span>
+                                    @if($property->priceSuffix())
+                                        <small>{{ $property->priceSuffix() }}</small>
+                                    @endif
+                                </span>
                                 <a href="{{ route('property', $property->slug) }}" class="btn btn-primary btn-sm">
-                                    Ver detalles <i class="fas fa-arrow-right ms-1"></i>
+                                    Ver detalles <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>

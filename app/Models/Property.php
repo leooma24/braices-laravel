@@ -123,6 +123,24 @@ class Property extends Model
      * "Vendida". Devuelve null cuando la propiedad sigue disponible.
      */
     /**
+     * Sufijo del precio en las tarjetas: una renta de $8,000 y una venta de
+     * $8,000 se veian identicas. Solo aplica a las transacciones de renta
+     * (1 = Renta, 4 = Renta / Venta).
+     */
+    public function priceSuffix(): ?string
+    {
+        return in_array((int) $this->transaction_type_id, [1, 4], true) ? '/mes' : null;
+    }
+
+    /**
+     * Texto de la foto principal cuando no hay imagen o el archivo se perdio.
+     */
+    public function hasPhoto(): bool
+    {
+        return !empty($this->getRawOriginal('photo_main'));
+    }
+
+    /**
      * Periodo de cobro de la reservación: 'noche' (default) o 'mes'.
      */
     public function ratePeriod(): string
