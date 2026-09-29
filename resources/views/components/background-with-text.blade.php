@@ -18,7 +18,13 @@
 
             <div class="col-12 col-md-6 text-center">
                 <div class="background-image-wrap">
-                    <img src="{{ asset('roberto-nickson-smJ6XsYy8gA-unsplash.jpg') }}" alt="" class="background-image">
+                    {{-- webp con fallback jpg; width/height declarados para
+                         que el navegador reserve el espacio y no salte. --}}
+                    <picture>
+                        <source srcset="{{ asset('roberto-nickson-smJ6XsYy8gA-unsplash.webp') }}" type="image/webp">
+                        <img src="{{ asset('roberto-nickson-smJ6XsYy8gA-unsplash.jpg') }}" alt=""
+                             width="1920" height="1280" loading="lazy" decoding="async" class="background-image">
+                    </picture>
                 </div>
             </div>
         </div>
