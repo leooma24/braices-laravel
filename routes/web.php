@@ -36,6 +36,8 @@ Route::controller(PageController::class)->group(function () {
     Route::get('/reservaciones', 'reservations')->name('reservations');
     Route::get('/contacto', 'contact')->name('contact');
     Route::get('/planes', 'packages')->name('packages');
+    Route::get('/aviso-de-privacidad', 'privacy')->name('privacy');
+    Route::get('/terminos-y-condiciones', 'terms')->name('terms');
 });
 
 Route::post('/contacto', [FormController::class, 'contact'])->middleware('throttle:5,1')->name('contact.send');

@@ -234,6 +234,8 @@
                 <li class="nav-item"><a href="/propiedades" class="nav-link px-2 text-body-secondary {{ Request::is('propiedades') ? 'active' : '' }}">Propiedades</a>
                 </li>
                 <li class="nav-item"><a href="/contacto" class="nav-link px-2 text-body-secondary {{ Request::is('contacto') ? 'active' : '' }}">Contacto</a></li>
+                <li class="nav-item"><a href="{{ route('privacy') }}" class="nav-link px-2 text-body-secondary {{ Request::is('aviso-de-privacidad') ? 'active' : '' }}">Aviso de Privacidad</a></li>
+                <li class="nav-item"><a href="{{ route('terms') }}" class="nav-link px-2 text-body-secondary {{ Request::is('terminos-y-condiciones') ? 'active' : '' }}">Términos</a></li>
             </ul>
             <div class="d-flex justify-content-center flex-column flex-sm-row">
                 <a href="tel:6688180202" class="me-3 mb-2 link-body-emphasis text-decoration-none">
@@ -246,7 +248,7 @@
             <div class="text-success">
                 <hr>
             </div>
-            <p class="text-center text-body-secondary">&copy; {{ date('Y') }} BienesCorp. Todos los Drechos Reservados</p>
+            <p class="text-center text-body-secondary">&copy; {{ date('Y') }} BienesCorp. Todos los derechos reservados.</p>
         </footer>
     </div>
 

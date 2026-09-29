@@ -101,6 +101,16 @@ class PageController extends Controller
         return $out;
     }
 
+    public function privacy()
+    {
+        return view('privacy');
+    }
+
+    public function terms()
+    {
+        return view('terms');
+    }
+
     public function us()
     {
         return view('us');
