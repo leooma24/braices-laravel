@@ -39,6 +39,20 @@ return [
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    // Las llaves de las pasarelas se leen SIEMPRE por config(), nunca con
+    // env() desde una vista: el deploy corre config:cache y ahi env()
+    // devuelve null, que fue justo lo que dejo el SDK sin client-id.
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'secret' => env('PAYPAL_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'live'),
+    ],
+
+    'mercadopago' => [
+        'public_key' => env('MERCADO_PAGO_PUBLIC_KEY'),
+        'access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
+    ],
+
     'recaptcha' => [
         'sitekey' => env('NOCAPTCHA_SITEKEY'),
         'secret' => env('NOCAPTCHA_SECRET'),

@@ -227,7 +227,7 @@ class ReservationController extends Controller
         return view('reservation-checkout', [
             'reservation' => $reservation,
             'preferenceId' => $payment->external_reference,
-            'mpPublicKey' => env('MERCADO_PAGO_PUBLIC_KEY'),
+            'mpPublicKey' => config('services.mercadopago.public_key'),
         ]);
     }
 
@@ -321,7 +321,7 @@ class ReservationController extends Controller
 
     private function createMpPreference(Reservation $reservation): string
     {
-        if (!env('MERCADO_PAGO_ACCESS_TOKEN')) {
+        if (!config('services.mercadopago.access_token')) {
             throw new \RuntimeException('MERCADO_PAGO_ACCESS_TOKEN no está configurado.');
         }
 

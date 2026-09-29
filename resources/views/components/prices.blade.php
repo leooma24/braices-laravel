@@ -155,8 +155,17 @@
     </div>
 </div>
 
-<script src="https://sdk.mercadopago.com/js/v2"></script>
-<script src="https://paypal.com/sdk/js?client-id={{ env('PAYPAL_CLIENT_ID') }}&components=buttons&currency=MXN"></script>
+@php
+    $paypalClientId = config('services.paypal.client_id');
+    $mercadoPagoKey = config('services.mercadopago.public_key');
+@endphp
+
+@if($mercadoPagoKey)
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+@endif
+@if($paypalClientId)
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&components=buttons&currency=MXN"></script>
+@endif
 
 <script>
 let price = 0;
@@ -170,6 +179,7 @@ const myToast = new bootstrap.Toast(myToastEl)
 const myModalEl = document.getElementById('myModal')
 const myModal = new bootstrap.Modal(myModalEl)
 
+if (typeof paypal !== 'undefined') {
 paypal.Buttons({
     style: { layout: 'horizontal', color: 'gold', shape: 'rect' },
     createOrder: function (data, actions) {
@@ -194,6 +204,7 @@ paypal.Buttons({
         });
     }
 }).render('#paypal-button-container');
+}
 
 myModalEl.addEventListener('show.bs.modal', async event => {
     myModalEl.querySelector('.mercadopago-button')?.remove()
@@ -227,7 +238,14 @@ myModalEl.addEventListener('show.bs.modal', async event => {
     })
     const data = await response.json()
 
-    const mp = new MercadoPago("{{ env('MERCADO_PAGO_PUBLIC_KEY') }}", { locale: 'es-MX' });
+    if (typeof MercadoPago === 'undefined') {
+        // Sin llave configurada no hay SDK: avisamos en vez de reventar.
+        myModalEl.querySelector('.btn-checkout').innerHTML =
+            '<span class="text-muted small">Pago en línea no disponible por el momento. Escríbenos por WhatsApp para contratar.</span>';
+        return;
+    }
+
+    const mp = new MercadoPago(@json($mercadoPagoKey), { locale: 'es-MX' });
     mp.checkout({
         preference: { id: data.preference_id },
         render: { container: '.btn-checkout', label: 'Mercado Pago' }

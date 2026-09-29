@@ -57,15 +57,21 @@
         </div>
     </div>
 
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
-    <script>
-        const mp = new MercadoPago(@json($mpPublicKey), { locale: 'es-MX' });
-        mp.checkout({
-            preference: { id: @json($preferenceId) },
-            render: {
-                container: '#mp-checkout',
-                label: 'Pagar con MercadoPago',
-            },
-        });
-    </script>
+    @if($mpPublicKey)
+        <script src="https://sdk.mercadopago.com/js/v2"></script>
+        <script>
+            const mp = new MercadoPago(@json($mpPublicKey), { locale: 'es-MX' });
+            mp.checkout({
+                preference: { id: @json($preferenceId) },
+                render: {
+                    container: '#mp-checkout',
+                    label: 'Pagar con MercadoPago',
+                },
+            });
+        </script>
+    @else
+        <div class="alert alert-warning" role="alert">
+            El pago en línea no está disponible por el momento. Contáctanos por WhatsApp para completar tu reservación.
+        </div>
+    @endif
 @endsection

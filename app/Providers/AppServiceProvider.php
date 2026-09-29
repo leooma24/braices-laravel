@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         //    bloquea ese egress), abortando el deploy antes de tocar FTP.
         //  - mete latencia innecesaria en cualquier artisan command corrido
         //    sin credenciales (tests, CI, migraciones locales).
-        $mpToken = env('MERCADO_PAGO_ACCESS_TOKEN');
+        $mpToken = config('services.mercadopago.access_token');
         if (is_string($mpToken) && $mpToken !== '' && ! str_starts_with($mpToken, 'stub')) {
             SDK::setAccessToken($mpToken);
         }
