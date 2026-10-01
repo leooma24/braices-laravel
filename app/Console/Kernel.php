@@ -24,6 +24,12 @@ class Kernel extends ConsoleKernel
             ->dailyAt('10:00')
             ->withoutOverlapping();
 
+        // Foto diaria del contador de vistas: sin esto `properties.views` es un
+        // acumulado sin fecha y no se puede medir el movimiento de un periodo.
+        $schedule->command('views:snapshot')
+            ->dailyAt('01:00')
+            ->withoutOverlapping();
+
         // Backups (spatie/laravel-backup): clean viejos a las 02:00 + nuevo a las 02:30.
         $schedule->command('backup:clean')->dailyAt('02:00')->withoutOverlapping();
         $schedule->command('backup:run --only-db')->dailyAt('02:30')->withoutOverlapping();

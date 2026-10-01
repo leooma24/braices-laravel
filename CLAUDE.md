@@ -147,6 +147,18 @@ Stub para Sentry (apagado por flag `SENTRY_ENABLED=false`). Para activar:
 - En `/propiedades` las destacadas se ordenan primero. La card recibe la clase `.card-featured` con borde coral y badge "Destacada".
 - Endpoint `POST /propiedad/{slug}/destacar` (auth + dueño) toggle de 30 días.
 
+## Vistas y movimiento de propiedades
+
+`properties.views` es un contador acumulado sin fecha (se incrementa en cada carga de la ficha), así que por sí solo no sirve para medir el movimiento de un periodo. Encima de él:
+
+- Tabla `property_view_snapshots` (una foto por propiedad por día, `unique(property_id, captured_on)`).
+- `php artisan views:snapshot [--date=Y-m-d]` — guarda la foto del día. Corre solo, diario a la 01:00 (ver `app/Console/Kernel.php`).
+- `php artisan views:report [--days=7]` — vistas nuevas por propiedad en el periodo, con promedio diario. Si no hay foto tan vieja, usa la más antigua y reporta el span real.
+- `PropertyViewBaselineSeeder` — baseline del 2026-10-01 leído de las fichas públicas, para no empezar de cero.
+- Sin SSH: `/deploy/run?token=...&action=views-snapshot|views-report&days=N|views-baseline`.
+
+No hay Google Analytics ni otro tracking en el sitio; estas fotos son la única fuente de movimiento por fecha. Los prospectos del formulario viven aparte, en `leads` → `/cuenta/prospectos`.
+
 ## Gotchas
 
 - `Property::isLand()` and `propertyTypes` cause N+1 if iterated without eager loading. Use `Property::with(['propertyTypes', 'status'])` in list queries.

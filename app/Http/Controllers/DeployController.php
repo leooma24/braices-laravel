@@ -105,6 +105,27 @@ class DeployController extends Controller
                     $output = "Cache del sitemap limpiado; /sitemap.xml se regenera en la siguiente visita.\n";
                     break;
 
+                case 'views-snapshot':
+                    // Respaldo por si el cron de schedule:run no está activo en
+                    // el servidor: permite tomar la foto del día desde el browser.
+                    Artisan::call('views:snapshot');
+                    $output = Artisan::output();
+                    break;
+
+                case 'views-baseline':
+                    // Carga por única vez las vistas leídas el 2026-10-01.
+                    Artisan::call('db:seed', [
+                        '--class' => 'Database\Seeders\PropertyViewBaselineSeeder',
+                        '--force' => true,
+                    ]);
+                    $output = Artisan::output();
+                    break;
+
+                case 'views-report':
+                    Artisan::call('views:report', ['--days' => (int) $request->query('days', 7)]);
+                    $output = Artisan::output();
+                    break;
+
                 case 'down':
                     // Modo mantenimiento: el sitio sirve 503 con la página de "back soon"
                     // a todos los visitantes, excepto a IPs/tokens en el bypass.
