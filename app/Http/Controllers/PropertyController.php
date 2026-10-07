@@ -186,6 +186,7 @@ class PropertyController extends Controller
         }
 
         $property->increment('views');
+        (new \App\Services\VisitSource)->record($property, $request);
         $similar = $this->similarProperties($property);
 
         return view('property', compact('property', 'qrCode', 'similar'));
@@ -202,6 +203,7 @@ class PropertyController extends Controller
         }
 
         $property->increment('views');
+        (new \App\Services\VisitSource)->record($property, $request);
         $similar = $this->similarProperties($property);
 
         return view('property', compact('property', 'qrCode', 'slugUser', 'similar'));

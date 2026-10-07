@@ -159,6 +159,24 @@ Stub para Sentry (apagado por flag `SENTRY_ENABLED=false`). Para activar:
 
 No hay Google Analytics ni otro tracking en el sitio; estas fotos son la única fuente de movimiento por fecha. Los prospectos del formulario viven aparte, en `leads` → `/cuenta/prospectos`.
 
+### Origen de las visitas
+
+`properties.views` no dice de dónde llegó la gente, así que no se podía separar Facebook del efecto de ser la propiedad más reciente del listado.
+
+- Tabla `property_view_sources`: agregada por propiedad, origen y día (`unique(property_id, source, day)`), no una fila por visita.
+- `App\Services\VisitSource` resuelve el origen. Prioridad: `?de=` → `?utm_source=` → host del `Referer` → `directo`. La marca manual va primero **a propósito**: Facebook manda mucho tráfico sin `Referer` desde su app, y si se dependiera del referer ese tráfico se contaría como directo.
+- Al publicar en grupos hay que pegar la liga con `?de=facebook` para que se distinga.
+- `php artisan views:sources [--days=7] [--property=ID]`, o `/deploy/run?action=views-sources&days=N`.
+- Filtro ligero de bots por user agent; no pretende atrapar todo, solo que los rastreadores obvios no inflen un origen.
+
+### Contactos por WhatsApp
+
+Tabla `property_contact_clicks` (property_id, channel, created_at). La ficha dispara un `POST` a `/propiedad/{id}/contacto/{channel}` cuando alguien pica WhatsApp o correo; si falla, el enlace funciona igual. El conteo sale en `/cuenta/mis-propiedades`.
+
+## Anti-spam
+
+Los formularios tienen reCAPTCHA v2, pero igual entraba spam (las granjas de captchas lo resuelven barato). Encima va `<x-honeypot />` + el middleware `honeypot`: descarta el envío si el campo trampa viene lleno, si la marca de tiempo cifrada fue alterada, o si el formulario se mandó en menos de 3 segundos. **Al bot se le responde con el mismo mensaje de éxito que a una persona**, a propósito: con un error visible, quien lo opera lo nota y ajusta el script. Si no viene la marca de tiempo no se castiga, por si queda una vista vieja en caché.
+
 ## Gotchas
 
 - `Property::isLand()` and `propertyTypes` cause N+1 if iterated without eager loading. Use `Property::with(['propertyTypes', 'status'])` in list queries.

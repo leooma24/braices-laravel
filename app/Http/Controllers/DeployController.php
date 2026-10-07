@@ -121,6 +121,11 @@ class DeployController extends Controller
                     $output = Artisan::output();
                     break;
 
+                case 'views-sources':
+                    Artisan::call('views:sources', ['--days' => (int) $request->query('days', 7)]);
+                    $output = Artisan::output();
+                    break;
+
                 case 'views-report':
                     Artisan::call('views:report', ['--days' => (int) $request->query('days', 7)]);
                     $output = Artisan::output();
