@@ -71,5 +71,6 @@ class Kernel extends HttpKernel
         'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         'my_guest' => \App\Http\Middleware\MyGuest::class,
         'validate.property' => \App\Http\Middleware\ValidatePropertyRequest::class,
+        'honeypot' => \App\Http\Middleware\Honeypot::class,
     ];
 }

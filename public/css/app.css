@@ -2490,3 +2490,22 @@ html, body { overflow-x: clip; }
     background: var(--color-primary);
     color: #fff;
 }
+
+/* Campo trampa del honeypot: fuera de pantalla, no display:none, porque varios
+   bots ignoran a proposito lo que esta oculto de esa forma. */
+.hp-wrap {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.owner-stats__contacts {
+    background: #dcfce7;
+    color: #14532d;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+}
+.owner-stats__contacts i { margin-right: 0.2rem; }

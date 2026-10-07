@@ -83,6 +83,13 @@
                                         {{ $insight['days'] }} {{ $insight['days'] == 1 ? 'día' : 'días' }}
                                     </span>
                                 @endif
+                                @if(($contacts[$property->id] ?? 0) > 0)
+                                    <span class="owner-stats__contacts">
+                                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                                        {{ $contacts[$property->id] }}
+                                        {{ $contacts[$property->id] == 1 ? 'contacto' : 'contactos' }}
+                                    </span>
+                                @endif
                             </div>
 
                             @unless($property->hasPhoto())

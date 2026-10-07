@@ -80,6 +80,8 @@
                                 <label for="message">Cuéntanos en qué podemos ayudarte</label>
                             </div>
 
+                            <x-honeypot />
+
                             <div class="d-flex justify-content-center mb-3">
                                 {!! NoCaptcha::display() !!}
                             </div>

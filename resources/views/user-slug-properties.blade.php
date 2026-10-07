@@ -179,6 +179,8 @@
                                 <label for="message">Mensaje</label>
                             </div>
 
+                            <x-honeypot />
+
                             <div class="text-center mt-2">
                                 {!! NoCaptcha::display() !!}
                             </div>

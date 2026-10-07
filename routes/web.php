@@ -41,8 +41,8 @@ Route::controller(PageController::class)->group(function () {
     Route::get('/terminos-y-condiciones', 'terms')->name('terms');
 });
 
-Route::post('/contacto', [FormController::class, 'contact'])->middleware('throttle:5,1')->name('contact.send');
-Route::post('/contactame', [FormController::class, 'contactMe'])->middleware('throttle:5,1')->name('contact.me');
+Route::post('/contacto', [FormController::class, 'contact'])->middleware(['throttle:5,1', 'honeypot'])->name('contact.send');
+Route::post('/contactame', [FormController::class, 'contactMe'])->middleware(['throttle:5,1', 'honeypot'])->name('contact.me');
 
 
 
@@ -82,6 +82,8 @@ Route::get('/propiedades/{slug}', [PropertyController::class, 'getPropertiesByUs
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.attempt');
 Route::get('/propiedad/imagen/{id}', [PropertyController::class, 'getImageProperty'])->name('imageProperty');
 Route::get('/propiedad/portada/{id}.jpg', [PropertyController::class, 'getCoverImage'])->name('property.cover');
+Route::post('/propiedad/{id}/contacto/{channel}', [PropertyController::class, 'trackContactClick'])
+    ->middleware('throttle:30,1')->name('property.contact.track');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cuenta/perfil', [UserController::class, 'getProfile'])->name('profile');

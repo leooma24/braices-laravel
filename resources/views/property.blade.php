@@ -391,11 +391,12 @@
                             @if($property->user->phone_number)
                                 <a href="https://wa.me/{{ preg_replace('/\s+/', '', $property->user->phone_number) }}?text={{ urlencode('Hola, me interesa la propiedad: ' . $property->title) }}"
                                    target="_blank" rel="noopener"
-                                   class="btn btn-success btn-lg" style="background-color: #25D366; border-color: #25D366;">
+                                   class="btn btn-success btn-lg" data-contact-channel="whatsapp"
+                                   style="background-color: #25D366; border-color: #25D366;">
                                     <i class="fab fa-whatsapp me-2"></i>WhatsApp
                                 </a>
                             @endif
-                            <a href="mailto:{{ $property->user->email }}" class="btn btn-outline-primary text-truncate">
+                            <a href="mailto:{{ $property->user->email }}" data-contact-channel="correo" class="btn btn-outline-primary text-truncate">
                                 <i class="fas fa-envelope me-2"></i>Enviar correo
                             </a>
                             <a href="{{ route('my.properties', ['slug' => $property->user->slug]) }}" class="btn btn-link">
@@ -449,6 +450,8 @@
                                 <textarea name="message" class="form-control" style="height: 100px"  id="message" placeholder="Mensaje">Hola, estoy interesado en {{ $property->title }}</textarea>
                                 <label for="message">Mensaje</label>
                             </div>
+
+                            <x-honeypot />
 
                             <div class="text-center mt-2">
                                 {!! NoCaptcha::display() !!}
@@ -518,6 +521,26 @@
         </div>
     </section>
 @endif
+
+<script>
+    // Registra el clic de contacto antes de que el visitante se vaya a
+    // WhatsApp. keepalive deja la peticion viva aunque la pestaña cambie; si
+    // falla no pasa nada, el enlace sigue funcionando igual.
+    (function () {
+        var token = document.querySelector('meta[name="csrf-token"]')?.content;
+        var propiedad = @json($property->id);
+
+        document.querySelectorAll('[data-contact-channel]').forEach(function (el) {
+            el.addEventListener('click', function () {
+                fetch('/propiedad/' + propiedad + '/contacto/' + el.dataset.contactChannel, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': token },
+                    keepalive: true,
+                }).catch(function () {});
+            });
+        });
+    })();
+</script>
 
 {!! NoCaptcha::renderJs() !!}
 

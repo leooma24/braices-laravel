@@ -133,7 +133,14 @@ class PropertyController extends Controller
         // por el que vuelve. Se resuelven en una sola consulta, no en bucle.
         $insights = (new \App\Services\ViewsInsight)->forProperties($list->getCollection(), 30);
 
-        return view('my-properties', compact('list', 'insights'));
+        // Clics a los botones de contacto, en una sola consulta agrupada.
+        $contacts = \App\Models\PropertyContactClick::query()
+            ->whereIn('property_id', $list->getCollection()->pluck('id'))
+            ->selectRaw('property_id, count(*) as total')
+            ->groupBy('property_id')
+            ->pluck('total', 'property_id');
+
+        return view('my-properties', compact('list', 'insights', 'contacts'));
     }
 
     public function getPropertiesByUser($slug, Request $request)
@@ -592,6 +599,29 @@ class PropertyController extends Controller
         return response($image, 200)
             ->header('Content-Type', 'image/jpeg')
             ->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Registra que alguien pico un boton de contacto en una ficha. Es la unica
+     * forma de saber que propiedad genera conversaciones: el contacto real se
+     * va por WhatsApp y la platica ocurre fuera del sitio.
+     */
+    public function trackContactClick(Request $request, $id, string $channel)
+    {
+        if (! in_array($channel, ['whatsapp', 'correo', 'telefono'], true)) {
+            abort(404);
+        }
+
+        if (! Property::whereKey($id)->exists()) {
+            abort(404);
+        }
+
+        \App\Models\PropertyContactClick::create([
+            'property_id' => $id,
+            'channel' => $channel,
+        ]);
+
+        return response()->noContent();
     }
 
     /**
