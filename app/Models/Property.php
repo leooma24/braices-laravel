@@ -141,6 +141,25 @@ class Property extends Model
     }
 
     /**
+     * URL de portada para listados: la foto si existe, si no una imagen de
+     * marca generada con los datos de la propiedad. Evita el hueco gris de
+     * "Sin fotografía", que es lo que más castiga las visitas.
+     */
+    public function coverUrl(): string
+    {
+        // No basta con que la columna traiga un nombre: varias propiedades
+        // apuntan a archivos que ya no estan en disco y la tarjeta quedaba en
+        // blanco. Si el archivo falta, tambien se usa la portada generada.
+        $photo = $this->getRawOriginal('photo_main');
+
+        if ($photo && is_file(public_path('images/'.$photo))) {
+            return $this->photo_main;
+        }
+
+        return route('property.cover', $this->id);
+    }
+
+    /**
      * Periodo de cobro de la reservación: 'noche' (default) o 'mes'.
      */
     public function ratePeriod(): string

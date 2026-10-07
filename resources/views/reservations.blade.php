@@ -26,7 +26,7 @@
                 <div class="col-12 col-md-6 col-lg-4">
                     <article class="card h-100 position-relative">
                         <a href="{{ route('reservation.show', $property->slug) }}" class="d-block">
-                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="240" loading="lazy">
+                            <img src="{{ $property->coverUrl() }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="240" loading="lazy">
                         </a>
 
                         <button type="button" class="btn btn-light position-absolute top-0 end-0 m-3 rounded-circle p-2 shadow-sm" aria-label="Guardar como favorito" style="width: 40px; height: 40px;">

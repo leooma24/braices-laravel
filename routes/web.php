@@ -80,6 +80,7 @@ Route::get('/propiedades/{slugUser}/propiedad/{slug}', [PropertyController::clas
 Route::get('/propiedades/{slug}', [PropertyController::class, 'getPropertiesByUser'])->name('my.properties');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.attempt');
 Route::get('/propiedad/imagen/{id}', [PropertyController::class, 'getImageProperty'])->name('imageProperty');
+Route::get('/propiedad/portada/{id}.jpg', [PropertyController::class, 'getCoverImage'])->name('property.cover');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cuenta/perfil', [UserController::class, 'getProfile'])->name('profile');

@@ -2230,3 +2230,46 @@ textarea:focus-visible,
     .property-card:hover .property-card__media img { transform: none; }
     .card:has(a):hover { transform: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Area tactil minima en dispositivos de dedo.
+   Los .btn-sm de las tarjetas median 35px de alto; el minimo recomendado para
+   tocar con el pulgar es 44px. Se aplica solo a punteros gruesos para no
+   engordar los botones en escritorio.
+--------------------------------------------------------------------------- */
+@media (pointer: coarse) {
+    .btn-sm,
+    .btn.btn-sm,
+    .form-select-sm,
+    .form-control-sm {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .navbar-toggler {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Enlaces sueltos dentro de tarjetas y listados. */
+    .property-card__body a,
+    .card-body a:not(.btn) {
+        padding-block: 2px;
+    }
+}
+
+/* Propiedades similares al pie de la ficha. */
+.similar-section {
+    background: var(--color-gray-50);
+    border-top: 1px solid var(--color-border);
+    padding: 3rem 0 3.5rem;
+    margin-top: 3rem;
+}
+.similar-section__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+    margin: 0;
+}

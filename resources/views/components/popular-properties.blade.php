@@ -12,7 +12,7 @@
             <div class="col-12 col-md-6 col-lg-4">
                 <article class="card h-100 position-relative">
                     <a href="{{ route('property', $property->slug) }}" class="d-block">
-                        <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" loading="lazy">
+                        <img src="{{ $property->coverUrl() }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="280" loading="lazy">
                     </a>
 
                     <div class="types position-absolute top-0 start-0 m-3 d-flex flex-wrap gap-2">

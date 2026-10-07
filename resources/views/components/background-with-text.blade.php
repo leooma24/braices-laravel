@@ -1,6 +1,8 @@
 <section class="section-background-with-text py-5">
     <div class="container">
-        <div class="row align-items-center g-5">
+        {{-- g-5 en movil desborda: su margen negativo (24px) supera el padding
+             del container (12px) y la pagina se desliza de lado. --}}
+        <div class="row align-items-center g-4 g-md-5">
             <div class="col-12 col-md-6">
                 <h2 class="mb-3">Encuentra la propiedad ideal con nuestras opciones de venta y renta</h2>
                 <p class="text-muted-2 mb-3">

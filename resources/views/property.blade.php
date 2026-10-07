@@ -482,6 +482,43 @@
     </div>
 </div>
 
+@if(!empty($similar) && count($similar))
+    {{-- La ficha era un callejon sin salida: o contactaba o se iba. --}}
+    <section class="similar-section">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+                <h2 class="similar-section__title">Otras propiedades que te pueden servir</h2>
+                <a href="{{ route('properties') }}" class="btn btn-outline-primary btn-sm">Ver todas</a>
+            </div>
+
+            <div class="row g-4">
+                @foreach($similar as $other)
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <article class="property-card card h-100">
+                            <a href="{{ route('property', $other->slug) }}" class="property-card__media" tabindex="-1" aria-hidden="true">
+                                <img src="{{ $other->coverUrl() }}" alt="{{ $other->title }}" width="400" height="280" loading="lazy">
+                                <div class="types property-card__tags">
+                                    @foreach($other->propertyTypes as $otherType)
+                                        <span class="badge">{{ $otherType->name }}</span>
+                                    @endforeach
+                                    <span class="badge">{{ $other->transaction->name }}</span>
+                                </div>
+                            </a>
+
+                            <div class="card-body property-card__body">
+                                <h3 class="property-card__title">
+                                    <a href="{{ route('property', $other->slug) }}">{{ $other->title }}</a>
+                                </h3>
+                                <p class="property-card__price mb-0">${{ number_format($other->price) }}</p>
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
 {!! NoCaptcha::renderJs() !!}
 
 <script async defer

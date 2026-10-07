@@ -170,9 +170,14 @@ class PropertyController extends Controller
             ->generate(URL::to('/') . '/propiedad/' . $id);
         $property = Property::with(['propertyTypes', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName', 'reviews.user'])->where('slug', $id)->first();
 
-        $property->increment('views');
+        if (! $property) {
+            abort(404);
+        }
 
-        return view('property', compact('property', 'qrCode'));
+        $property->increment('views');
+        $similar = $this->similarProperties($property);
+
+        return view('property', compact('property', 'qrCode', 'similar'));
     }
 
     public function getUserProperty(Request $request, $slugUser, $slugProperty)
@@ -181,9 +186,14 @@ class PropertyController extends Controller
             ->generate(URL::to('/') . '/propiedades/' . $slugUser . '/propiedad/' . $slugProperty);
         $property = Property::with(['type', 'status', 'images', 'user', 'countryName', 'stateName', 'townshipName', 'suburbName', 'reviews.user'])->where('slug', $slugProperty)->first();
 
-        $property->increment('views');
+        if (! $property) {
+            abort(404);
+        }
 
-        return view('property', compact('property', 'qrCode', 'slugUser'));
+        $property->increment('views');
+        $similar = $this->similarProperties($property);
+
+        return view('property', compact('property', 'qrCode', 'slugUser', 'similar'));
     }
 
     public function editProperty(Request $request, $id)
@@ -549,22 +559,7 @@ class PropertyController extends Controller
             abort(404);
         }
 
-        $stats = [];
-        if ($property->square_feet) {
-            $stats[] = ['value' => number_format(round($property->square_feet)) . ' m²', 'label' => 'Terreno'];
-        }
-        if ($property->square_meters_contruction) {
-            $stats[] = ['value' => number_format(round($property->square_meters_contruction)) . ' m²', 'label' => 'Construcción'];
-        }
-        if ($property->bedrooms) {
-            $stats[] = ['value' => (string) $property->bedrooms, 'label' => $property->bedrooms == 1 ? 'Recámara' : 'Recámaras'];
-        }
-        if ($property->bathrooms) {
-            $stats[] = ['value' => (string) $property->bathrooms, 'label' => $property->bathrooms == 1 ? 'Baño' : 'Baños'];
-        }
-        if (count($stats) < 4 && $property->front && $property->depth) {
-            $stats[] = ['value' => "{$property->front} x {$property->depth}", 'label' => 'Medidas (m)'];
-        }
+        $stats = $this->propertyStats($property);
 
         // El accessor devuelve URL pública; resolver a path real del filesystem
         $rawPhoto = $property->getRawOriginal('photo_main');
@@ -593,5 +588,122 @@ class PropertyController extends Controller
         return response($image, 200)
             ->header('Content-Type', 'image/jpeg')
             ->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Propiedades parecidas para el pie de la ficha: misma operacion y, de ser
+     * posible, mismo tipo, ordenadas por cercania de precio. Si no alcanzan,
+     * se completa con las mas recientes para no dejar la seccion a medias.
+     *
+     * @return \Illuminate\Support\Collection<int, Property>
+     */
+    private function similarProperties(Property $property, int $limit = 3)
+    {
+        $typeIds = $property->propertyTypes->pluck('id');
+
+        $base = fn () => Property::query()
+            ->with(['propertyTypes', 'transaction'])
+            ->where('id', '!=', $property->id)
+            ->where('property_status_id', 1);
+
+        $similar = $base()
+            ->where('transaction_type_id', $property->transaction_type_id)
+            ->when($typeIds->isNotEmpty(), fn ($q) => $q->whereHas(
+                'propertyTypes',
+                fn ($t) => $t->whereIn('property_types.id', $typeIds)
+            ))
+            ->orderByRaw('ABS(price - ?)', [(float) $property->price])
+            ->limit($limit)
+            ->get();
+
+        if ($similar->count() < $limit) {
+            $fill = $base()
+                ->whereNotIn('id', $similar->pluck('id')->push($property->id))
+                ->latest('id')
+                ->limit($limit - $similar->count())
+                ->get();
+
+            $similar = $similar->concat($fill);
+        }
+
+        return $similar;
+    }
+
+    /**
+     * Medidas resumidas de una propiedad, en el orden en que valen la pena
+     * mostrarse. Compartido por la imagen de compartir y la portada.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function propertyStats(Property $property): array
+    {
+        $stats = [];
+        if ($property->square_feet) {
+            $stats[] = ['value' => number_format(round($property->square_feet)) . ' m²', 'label' => 'Terreno'];
+        }
+        if ($property->square_meters_contruction) {
+            $stats[] = ['value' => number_format(round($property->square_meters_contruction)) . ' m²', 'label' => 'Construcción'];
+        }
+        if ($property->bedrooms) {
+            $stats[] = ['value' => (string) $property->bedrooms, 'label' => $property->bedrooms == 1 ? 'Recámara' : 'Recámaras'];
+        }
+        if ($property->bathrooms) {
+            $stats[] = ['value' => (string) $property->bathrooms, 'label' => $property->bathrooms == 1 ? 'Baño' : 'Baños'];
+        }
+        if (count($stats) < 4 && $property->front && $property->depth) {
+            $stats[] = ['value' => "{$property->front} x {$property->depth}", 'label' => 'Medidas (m)'];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Portada generada para las propiedades sin fotografía. Se cachea en disco
+     * con el timestamp de la propiedad en el nombre, así que al editarla se
+     * invalida sola y Apache sirve el archivo estático en las siguientes
+     * visitas sin pasar por PHP.
+     */
+    public function getCoverImage($id)
+    {
+        $property = Property::with(['suburbName', 'townshipName', 'transaction', 'propertyTypes'])->find($id);
+        if (! $property) {
+            abort(404);
+        }
+
+        $dir = public_path('covers');
+        $file = $dir . '/' . $property->id . '-' . ($property->updated_at?->timestamp ?: 0) . '.jpg';
+
+        if (! is_file($file)) {
+            $renderer = new \App\Services\PropertyCoverImage(
+                public_path('fonts/metropolis.medium.otf'),
+                public_path('fonts/metropolis.black.otf'),
+            );
+
+            $bytes = $renderer->render([
+                'type' => $property->propertyTypes->first()?->name,
+                'location' => implode(', ', array_filter([
+                    $property->suburbName?->nombre,
+                    $property->city ?: $property->townshipName?->nombre,
+                ])),
+                'stats' => $this->propertyStats($property),
+                'site' => preg_replace('/^www\./', '', request()->getHost()) ?: 'bienescorp.com',
+            ]);
+
+            if (! is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            // Si el disco es de solo lectura seguimos sirviendo la imagen en
+            // memoria: la portada importa mas que el cache.
+            @file_put_contents($file, $bytes);
+
+            return response($bytes, 200)
+                ->header('Content-Type', 'image/jpeg')
+                ->header('Cache-Control', 'public, max-age=604800');
+        }
+
+        return response()->file($file, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
     }
 }

@@ -136,10 +136,8 @@
                              foto o el archivo se perdio, la tarjeta conserva su
                              tamano en vez de encogerse y desacomodar la fila. --}}
                         <a href="{{ route('property', $property->slug) }}" class="property-card__media" tabindex="-1" aria-hidden="true">
-                            @if($property->hasPhoto())
-                                <img src="{{ $property->photo_main }}" alt="" width="400" height="280" loading="lazy"
-                                     onerror="this.closest('.property-card__media').classList.add('is-empty'); this.remove();">
-                            @endif
+                            <img src="{{ $property->coverUrl() }}" alt="{{ $property->title }}" width="400" height="280" loading="lazy"
+                                 onerror="this.closest('.property-card__media').classList.add('is-empty'); this.remove();">
                             <span class="property-card__placeholder" aria-hidden="true">
                                 <i class="fas fa-camera"></i>
                                 <small>Sin fotografía</small>
