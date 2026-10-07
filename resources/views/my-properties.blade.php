@@ -86,9 +86,12 @@
                             </div>
 
                             @unless($property->hasPhoto())
+                                {{-- Sin cifra: no tenemos suficientes propiedades
+                                     sin foto para medir el efecto de verdad. --}}
                                 <p class="owner-warning">
                                     <i class="fas fa-camera" aria-hidden="true"></i>
-                                    Sin fotos recibe cerca de un tercio de las visitas.
+                                    Esta propiedad no tiene fotos. Mientras tanto se muestra con una
+                                    portada automática.
                                     <a href="{{ route('properties.edit', $property->slug) }}">Agregar fotos</a>
                                 </p>
                             @endunless

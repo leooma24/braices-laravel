@@ -669,7 +669,7 @@ class PropertyController extends Controller
      */
     public function getCoverImage($id)
     {
-        $property = Property::with(['suburbName', 'townshipName', 'transaction', 'propertyTypes'])->find($id);
+        $property = Property::with(['suburbName', 'townshipName'])->find($id);
         if (! $property) {
             abort(404);
         }
@@ -684,7 +684,6 @@ class PropertyController extends Controller
             );
 
             $bytes = $renderer->render([
-                'type' => $property->propertyTypes->first()?->name,
                 'location' => implode(', ', array_filter([
                     $property->suburbName?->nombre,
                     $property->city ?: $property->townshipName?->nombre,

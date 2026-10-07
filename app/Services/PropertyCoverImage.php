@@ -40,7 +40,6 @@ class PropertyCoverImage
      * todo se veia como un cartel encimado.
      *
      * @param  array{
-     *     type: ?string,
      *     location: ?string,
      *     stats: array<int, array{value: string, label: string}>,
      *     site: string,
@@ -55,11 +54,10 @@ class PropertyCoverImage
 
         $this->drawBackdrop($img);
 
-        if ($data['type']) {
-            $label = mb_strtoupper($data['type']);
-            $this->text($img, $this->ellipsize($label, 20, $this->fontMedium, 380), 20, $this->fontMedium, self::PAD, self::PAD + 26, self::MUTED);
-            imagefilledrectangle($img, self::PAD, self::PAD + 48, self::PAD + 56, self::PAD + 52, $this->color($img, self::CORAL));
-        }
+        // Nada de texto en la esquina superior izquierda: ahi la tarjeta encima
+        // pone sus propias etiquetas de tipo y operacion, y se montaban una
+        // sobre otra. Solo queda la linea de acento.
+        imagefilledrectangle($img, self::PAD, self::PAD + 48, self::PAD + 56, self::PAD + 52, $this->color($img, self::CORAL));
 
         $this->drawHeadline($img, $data['stats']);
 
@@ -167,17 +165,6 @@ class PropertyCoverImage
         return rtrim($text).'...';
     }
 
-    private function roundedRect($img, int $x1, int $y1, int $x2, int $y2, int $r, array $rgb): void
-    {
-        $c = $this->color($img, $rgb);
-        imagefilledrectangle($img, $x1 + $r, $y1, $x2 - $r, $y2, $c);
-        imagefilledrectangle($img, $x1, $y1 + $r, $x2, $y2 - $r, $c);
-        imagefilledellipse($img, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $c);
-        imagefilledellipse($img, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $c);
-        imagefilledellipse($img, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $c);
-        imagefilledellipse($img, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $c);
-    }
-
     private function text($img, string $text, float $size, string $font, int $x, int $baseline, array $rgb): void
     {
         imagettftext($img, $size, 0, $x, $baseline, $this->color($img, $rgb), $font, $text);
@@ -193,32 +180,6 @@ class PropertyCoverImage
     /**
      * @return array<int, string>
      */
-    private function wrap(string $text, float $size, string $font, int $maxWidth, int $maxLines): array
-    {
-        $lines = [];
-        $line = '';
-
-        foreach (preg_split('/\s+/', trim($text)) as $word) {
-            $test = $line === '' ? $word : "{$line} {$word}";
-            if ($line !== '' && $this->textWidth($test, $size, $font) > $maxWidth) {
-                $lines[] = $line;
-                $line = $word;
-            } else {
-                $line = $test;
-            }
-        }
-        if ($line !== '') {
-            $lines[] = $line;
-        }
-
-        if (count($lines) > $maxLines) {
-            $lines = array_slice($lines, 0, $maxLines);
-            $lines[$maxLines - 1] = $this->ellipsize($lines[$maxLines - 1], $size, $font, $maxWidth);
-        }
-
-        return $lines;
-    }
-
     private function color($img, array $rgb): int
     {
         return imagecolorallocate($img, $rgb[0], $rgb[1], $rgb[2]);
