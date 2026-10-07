@@ -2237,9 +2237,16 @@ textarea:focus-visible,
    tocar con el pulgar es 44px. Se aplica solo a punteros gruesos para no
    engordar los botones en escritorio.
 --------------------------------------------------------------------------- */
-@media (pointer: coarse) {
+/* Ningun contenido debe poder deslizar la pagina de lado. Se usa `clip` y no
+   `hidden` porque `hidden` convierte al body en contenedor de scroll y rompe
+   el position:sticky de la barra de navegacion. */
+html, body { overflow-x: clip; }
+
+@media (max-width: 991.98px), (pointer: coarse) {
     .btn-sm,
     .btn.btn-sm,
+    /* "Ver mas" de las tarjetas: median 26px de alto. */
+    .btn.btn-link,
     .form-select-sm,
     .form-control-sm {
         min-height: 44px;
@@ -2272,4 +2279,163 @@ textarea:focus-visible,
     font-weight: 700;
     font-size: clamp(1.25rem, 2.5vw, 1.6rem);
     margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Pagina /publica: el camino del dueño que decide donde publicar.
+--------------------------------------------------------------------------- */
+.publish-hero {
+    position: relative;
+    min-height: 68vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 4rem 0;
+}
+.publish-hero__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+}
+.publish-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, rgba(11,37,64,0.94) 0%, rgba(11,37,64,0.80) 48%, rgba(11,37,64,0.35) 100%);
+}
+.publish-hero__inner { position: relative; }
+.publish-hero__copy { max-width: 36rem; }
+.publish-hero__eyebrow {
+    display: inline-block;
+    color: var(--color-accent);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.publish-hero__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: #fff;
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+.publish-hero__lead {
+    color: #dbeafe;
+    font-size: 1.05rem;
+    margin-bottom: 1.75rem;
+}
+.publish-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.publish-section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    margin-bottom: 0.75rem;
+}
+.publish-section-lead {
+    color: var(--color-gray-600);
+    max-width: 48rem;
+    margin-bottom: 2rem;
+}
+
+.publish-numbers { padding: 4rem 0; }
+.publish-numbers__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 2rem;
+}
+@media (min-width: 768px) {
+    .publish-numbers__grid { grid-template-columns: 1.4fr 1fr 1fr; gap: 2.5rem; }
+}
+.publish-figure { display: flex; flex-direction: column; }
+.publish-figure__value {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    line-height: 1;
+    color: var(--color-primary);
+}
+.publish-figure--lead .publish-figure__value { color: var(--color-accent); }
+.publish-figure__label {
+    margin-top: 0.4rem;
+    color: var(--color-gray-600);
+    font-size: 0.95rem;
+}
+.publish-numbers__note {
+    margin-top: 2rem;
+    color: var(--color-gray-500);
+    font-size: 0.92rem;
+    max-width: 44rem;
+}
+
+.publish-sample {
+    background: var(--color-gray-50);
+    border-block: 1px solid var(--color-border);
+    padding: 4rem 0;
+}
+.publish-sample__card { max-width: 26rem; margin-inline: auto; }
+
+.publish-steps { padding: 4rem 0; }
+.publish-steps__list {
+    list-style: none;
+    counter-reset: paso;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1.25rem;
+    max-width: 46rem;
+}
+.publish-steps__list li {
+    counter-increment: paso;
+    position: relative;
+    padding-left: 3.25rem;
+    color: var(--color-gray-600);
+}
+.publish-steps__list li::before {
+    content: counter(paso);
+    position: absolute;
+    left: 0;
+    top: -0.15rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-primary-50);
+    color: var(--color-primary-dark);
+    font-family: var(--font-display);
+    font-weight: 800;
+}
+.publish-steps__list strong { display: block; color: var(--color-gray-800, #1e293b); }
+
+.publish-closing {
+    background: var(--color-primary-dark);
+    padding: 3.5rem 0;
+    text-align: center;
+}
+.publish-closing__title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: #fff;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    margin-bottom: 1.5rem;
+}
+
+/* CTA del dueño en la barra: el unico naranja de la navegacion. */
+.nav-cta {
+    font-weight: 700;
+    white-space: nowrap;
+    padding-inline: 1rem;
+}
+@media (max-width: 991.98px) {
+    .nav-cta { display: block; margin-block: 0.5rem; }
 }

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
+use App\Models\Package;
 use App\Models\Property;
 use App\Models\PropertyTypeModel;
 use App\Models\TransactionTypeModel;
-use App\Models\Banner;
-use App\Models\Package;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
@@ -80,8 +80,8 @@ class PageController extends Controller
         // Grupos curados: agregamos varios property types bajo una sola tarjeta.
         $groups = [
             ['label' => 'Casas',       'icon' => 'fa-home',         'slug' => 'casas',       'match' => ['Casa Habitación', 'Casa Comercial', 'Casas de Playa']],
-            ['label' => 'Departamentos','icon' => 'fa-building',     'slug' => 'departamentos','match' => ['Departamentos']],
-            ['label' => 'Terrenos',    'icon' => 'fa-map-marked-alt','slug' => 'terrenos',    'match' => ['Terrenos', 'Terrenos Residenciales', 'Terrenos Comerciales', 'Terrenos Industriales', 'Terrenos Agrícolas', 'Terrenos Campestres', 'Terrenos Turísticos', 'Terrenos Ejidales']],
+            ['label' => 'Departamentos', 'icon' => 'fa-building',     'slug' => 'departamentos', 'match' => ['Departamentos']],
+            ['label' => 'Terrenos',    'icon' => 'fa-map-marked-alt', 'slug' => 'terrenos',    'match' => ['Terrenos', 'Terrenos Residenciales', 'Terrenos Comerciales', 'Terrenos Industriales', 'Terrenos Agrícolas', 'Terrenos Campestres', 'Terrenos Turísticos', 'Terrenos Ejidales']],
             ['label' => 'Comercial',   'icon' => 'fa-store',         'slug' => 'comercial',   'match' => ['Locales Comerciales', 'Oficinas', 'Bodegas', 'Edificios']],
         ];
 
@@ -98,6 +98,7 @@ class PageController extends Controller
                 'count' => $count,
             ];
         }
+
         return $out;
     }
 
@@ -124,7 +125,30 @@ class PageController extends Controller
     public function packages()
     {
         $packages = Package::orderBy('price')->get();
+
         return view('packages', compact('packages'));
+    }
+
+    /**
+     * Pagina para el dueño que esta decidiendo donde publicar. Responde en
+     * orden lo que se pregunta: cuanta gente la va a ver, como se va a ver,
+     * cuanto cuesta y cuanto tarda.
+     */
+    public function publish(\App\Services\ViewsInsight $insight)
+    {
+        $audience = $insight->siteSummary(30);
+
+        // Un ejemplo real de ficha vale mas que un mockup: se elige la activa
+        // con foto mas vista, para que el dueño vea el formato de verdad.
+        $sample = Property::with(['propertyTypes', 'transaction'])
+            ->where('property_status_id', 1)
+            ->whereNotNull('photo_main')
+            ->orderByDesc('views')
+            ->first();
+
+        $packages = Package::orderBy('price')->get();
+
+        return view('publish', compact('audience', 'sample', 'packages'));
     }
 
     public function reservations(Request $request)
@@ -145,6 +169,7 @@ class PageController extends Controller
         $properties = Property::where('is_reservable', true)
             ->where('property_status_id', 1)
             ->paginate(20);
+
         return view('reservations', compact('properties', 'days'));
     }
 }

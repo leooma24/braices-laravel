@@ -152,9 +152,22 @@
                         <a class="nav-link {{ Request::is('planes') ? 'active' : '' }}"
                             href="/planes">Planes</a>
                     </li>
-                    <li class="nav-item me-4">
+                    <li class="nav-item me-3">
                         <a class="nav-link {{ Request::is('contacto') ? 'active' : '' }}"
                             href="/contacto">Contacto</a>
+                    </li>
+
+                    {{-- El sitio no tenia ningun punto de entrada para el dueño
+                         que quiere publicar: solo rutas de comprador. --}}
+                    <li class="nav-item me-3">
+                        {{-- Sin la clase .active de Bootstrap: en un .btn pisa
+                             el fondo y deja el boton transparente. --}}
+                        {{-- Con el texto completo la barra se desborda 71px a
+                             1024px; abajo de xl se acorta para no partirla. --}}
+                        <a class="btn btn-accent nav-cta" href="{{ route('publish') }}">
+                            <span class="d-none d-xl-inline">Publica tu propiedad</span>
+                            <span class="d-xl-none">Publicar</span>
+                        </a>
                     </li>
 
                     @auth
