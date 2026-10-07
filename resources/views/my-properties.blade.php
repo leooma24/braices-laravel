@@ -52,7 +52,7 @@
                 <div class="col-12 col-md-6 col-lg-4">
                     <article class="card h-100 position-relative {{ $property->isFeaturedNow() ? 'card-featured' : '' }}">
                         <a href="{{ route('property', $property->slug) }}" class="d-block">
-                            <img src="{{ $property->photo_main }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="200" loading="lazy" style="height: 200px; object-fit: cover;">
+                            <img src="{{ $property->coverUrl() }}" class="card-img-top" alt="{{ $property->title }}" width="400" height="200" loading="lazy" style="height: 200px; object-fit: cover;">
                         </a>
 
                         @if($property->isFeaturedNow())
@@ -69,6 +69,29 @@
                             <p class="small text-muted-2 mb-3 text-truncate">
                                 {{ Str::limit($property->description, 90) }}
                             </p>
+
+                            {{-- El dato que el dueño quiere: cuanta gente la vio. --}}
+                            @php($insight = $insights[$property->id] ?? null)
+                            <div class="owner-stats">
+                                <span class="owner-stats__total">
+                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                    {{ number_format($property->views) }} visitas
+                                </span>
+                                @if($insight && $insight['views'] > 0)
+                                    <span class="owner-stats__delta">
+                                        +{{ number_format($insight['views']) }} en
+                                        {{ $insight['days'] }} {{ $insight['days'] == 1 ? 'día' : 'días' }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            @unless($property->hasPhoto())
+                                <p class="owner-warning">
+                                    <i class="fas fa-camera" aria-hidden="true"></i>
+                                    Sin fotos recibe cerca de un tercio de las visitas.
+                                    <a href="{{ route('properties.edit', $property->slug) }}">Agregar fotos</a>
+                                </p>
+                            @endunless
 
                             <div class="mt-auto pt-3 border-top">
                                 <div class="mc-price text-truncate mb-3">${{ number_format($property->price) }}</div>

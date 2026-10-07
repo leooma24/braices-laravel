@@ -2439,3 +2439,54 @@ html, body { overflow-x: clip; }
 @media (max-width: 991.98px) {
     .nav-cta { display: block; margin-block: 0.5rem; }
 }
+
+/* Visitas de cada propiedad en el panel del dueño. */
+.owner-stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.86rem;
+}
+.owner-stats__total { color: var(--color-gray-600); font-weight: 600; }
+.owner-stats__total i { color: var(--color-gray-400); margin-right: 0.25rem; }
+.owner-stats__delta {
+    background: var(--color-primary-50);
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+}
+.owner-warning {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    border-radius: var(--radius-md, 8px);
+    padding: 0.5rem 0.7rem;
+    font-size: 0.82rem;
+    margin-bottom: 0.75rem;
+}
+.owner-warning i { margin-right: 0.3rem; }
+.owner-warning a { color: #9a3412; font-weight: 700; }
+
+/* Las promesas de la barra de confianza no son cifras: necesitan menos escala
+   que un numero para no gritar. */
+.stat-number--word {
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+}
+
+/* Pestañas de la seccion de propiedades en la portada. */
+.property-tabs__nav { gap: 0.5rem; }
+.property-tabs__nav .nav-link {
+    border-radius: 999px;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    background: var(--color-gray-100);
+    padding: 0.5rem 1.1rem;
+}
+.property-tabs__nav .nav-link.active {
+    background: var(--color-primary);
+    color: #fff;
+}

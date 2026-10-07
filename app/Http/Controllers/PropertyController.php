@@ -129,7 +129,11 @@ class PropertyController extends Controller
         $list = Property::where('user_id', $user->id)
             ->with(['type', 'status'])->paginate($request->get('per_page', 15));
 
-        return view('my-properties', compact('list'));
+        // Las visitas de cada propiedad son el dato que el dueño quiere ver y
+        // por el que vuelve. Se resuelven en una sola consulta, no en bucle.
+        $insights = (new \App\Services\ViewsInsight)->forProperties($list->getCollection(), 30);
+
+        return view('my-properties', compact('list', 'insights'));
     }
 
     public function getPropertiesByUser($slug, Request $request)

@@ -48,6 +48,49 @@ class ViewsInsight
     }
 
     /**
+     * Igual que forProperty pero para varias de un jalón: una sola consulta de
+     * fotos en vez de dos por propiedad, que es lo que haría el panel del dueño
+     * si se llamara en un bucle.
+     *
+     * @param  \Illuminate\Support\Collection<int, Property>  $properties
+     * @return array<int, array{views: int, days: int}> indexado por property_id
+     */
+    public function forProperties($properties, int $days = 30): array
+    {
+        $ids = $properties->pluck('id');
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $since = now()->startOfDay()->subDays($days)->toDateString();
+
+        $snapshots = PropertyViewSnapshot::query()
+            ->whereIn('property_id', $ids)
+            ->orderBy('captured_on')
+            ->get()
+            ->groupBy('property_id');
+
+        $out = [];
+
+        foreach ($properties as $property) {
+            $history = $snapshots->get($property->id);
+            if (! $history || $history->isEmpty()) {
+                continue;
+            }
+
+            $baseline = $history->last(fn ($s) => $s->captured_on->toDateString() <= $since)
+                ?? $history->first();
+
+            $out[$property->id] = [
+                'views' => max(0, (int) $property->views - $baseline->views),
+                'days' => max(1, (int) $baseline->captured_on->startOfDay()->diffInDays(now()->startOfDay())),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * Resumen del catálogo activo para mostrarle a un dueño que está decidiendo
      * dónde publicar.
      *

@@ -44,6 +44,10 @@ class PageController extends Controller
                 ->distinct('city')
                 ->count('city'),
             'agents' => \App\Models\User::has('properties')->count(),
+            // Las visitas acumuladas son el unico numero grande y verdadero que
+            // tenemos. "13 propiedades" y "4 agentes" comunicaban lo contrario
+            // de lo que queremos: que aqui no te va a ver nadie.
+            'views' => (int) Property::where('property_status_id', 1)->sum('views'),
         ];
 
         // Categorías destacadas con conteos para la sección de tipos populares.

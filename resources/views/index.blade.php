@@ -64,32 +64,36 @@
         </div>
     </section>
 
-    {{-- ========= Stats / Trust signals ========= --}}
+    {{-- ========= Señales de confianza =========
+         Antes esto eran cuatro contadores (13 propiedades, 3 ciudades, 4
+         agentes) que comunicaban lo contrario de lo que queremos: que el sitio
+         esta vacio. Se deja un solo numero, el unico grande y verdadero que
+         tenemos, y tres promesas concretas que si podemos sostener. --}}
     <section class="stats-bar">
         <div class="container">
             <div class="row g-4 text-center">
                 <div class="col-6 col-md-3">
                     <div class="stat-item">
-                        <div class="stat-number">{{ number_format($stats['properties'] ?? 0) }}+</div>
-                        <div class="stat-label">Propiedades activas</div>
+                        <div class="stat-number">{{ number_format($stats['views'] ?? 0) }}</div>
+                        <div class="stat-label">Visitas a nuestras propiedades</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-item">
-                        <div class="stat-number">{{ $stats['cities'] ?? 0 }}+</div>
-                        <div class="stat-label">Ciudades</div>
+                        <div class="stat-number stat-number--word">WhatsApp</div>
+                        <div class="stat-label">Directo con el asesor</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-item">
-                        <div class="stat-number">{{ $stats['agents'] ?? 0 }}+</div>
-                        <div class="stat-label">Agentes</div>
+                        <div class="stat-number stat-number--word">En el mapa</div>
+                        <div class="stat-label">Ubicación exacta en cada ficha</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-item">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">Verificadas</div>
+                        <div class="stat-number stat-number--word">Sin plazos</div>
+                        <div class="stat-label">Publica y quita cuando quieras</div>
                     </div>
                 </div>
             </div>
@@ -138,16 +142,8 @@
     </section>
     @endif
 
-    {{-- ========= Propiedades destacadas / recientes ========= --}}
-    <x-popular-properties :properties="$newestProperties">
-        Propiedades Recientes
-    </x-popular-properties>
-
-    @if($popularProperties && $popularProperties->isNotEmpty() && $popularProperties->count() >= 3)
-    <x-popular-properties :properties="$popularProperties">
-        Las más vistas
-    </x-popular-properties>
-    @endif
+    {{-- ========= Propiedades: recientes y mas vistas en pestañas ========= --}}
+    <x-property-tabs :recent="$newestProperties" :popular="$popularProperties" />
 
     {{-- ========= Por qué BienesCorp ========= --}}
     <x-characteristics />
