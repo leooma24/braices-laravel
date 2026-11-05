@@ -173,6 +173,12 @@ No hay Google Analytics ni otro tracking en el sitio; estas fotos son la única 
 
 Tabla `property_contact_clicks` (property_id, channel, created_at). La ficha dispara un `POST` a `/propiedad/{id}/contacto/{channel}` cuando alguien pica WhatsApp o correo; si falla, el enlace funciona igual. El conteo sale en `/cuenta/mis-propiedades`.
 
+## Widget embebible (iframe)
+
+`GET /user-properties/{id|slug}` devuelve un **documento HTML completo y suelto** (no extiende el layout) con las propiedades disponibles de un usuario, pensado para incrustarse con `<iframe>` en otro sitio. Acepta `?cols=1..4` y `?limit=N`, y reporta su alto al padre por `postMessage` (`{bcWidget: 'bienescorp-propiedades', height}`).
+
+Para que funcione fuera del dominio, [public/.htaccess](public/.htaccess) quita `X-Frame-Options` y pone `Content-Security-Policy: frame-ancestors *` **solo** en `/user-properties/`; el resto del sitio sigue en `SAMEORIGIN`. La condición se evalúa con `%{THE_REQUEST}` y no con `Request_URI` porque en esa fase mod_rewrite ya reescribió la URI a `index.php`. Si se toca ese bloque, el widget deja de incrustarse sin aviso.
+
 ## Anti-spam
 
 Los formularios tienen reCAPTCHA v2, pero igual entraba spam (las granjas de captchas lo resuelven barato). Encima va `<x-honeypot />` + el middleware `honeypot`: descarta el envío si el campo trampa viene lleno, si la marca de tiempo cifrada fue alterada, o si el formulario se mandó en menos de 3 segundos. **Al bot se le responde con el mismo mensaje de éxito que a una persona**, a propósito: con un error visible, quien lo opera lo nota y ajusta el script. Si no viene la marca de tiempo no se castiga, por si queda una vista vieja en caché.
