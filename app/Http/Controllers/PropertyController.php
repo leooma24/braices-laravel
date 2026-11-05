@@ -558,11 +558,44 @@ class PropertyController extends Controller
         ], 200);
     }
 
-    public function getUserProperties(User $user)
+    /**
+     * Widget embebible con las propiedades de un usuario. La vista es un
+     * documento suelto (sin layout) pensado para incrustarse con <iframe> en
+     * otro sitio. Acepta el id o el slug del usuario.
+     *
+     * Parametros opcionales: ?cols=1..4 (columnas) y ?limit=N (cuantas mostrar).
+     */
+    public function getUserProperties(Request $request, $user)
     {
-        $properties = Property::where('user_id', $user->id)->get();
+        $owner = User::where('slug', $user)->first();
 
-        return view('user-properties', compact('properties'));
+        if (!$owner && ctype_digit((string) $user)) {
+            $owner = User::find((int) $user);
+        }
+
+        if (!$owner) {
+            abort(404);
+        }
+
+        $cols = min(max((int) $request->query('cols', 3), 1), 4);
+        $limit = max((int) $request->query('limit', 0), 0);
+
+        // Solo las disponibles: el widget vive en la pagina del dueño y ahi no
+        // tienen sentido las vendidas/rentadas. Eager loading porque isLand()
+        // recorre propertyTypes por tarjeta.
+        $query = Property::with(['propertyTypes', 'status', 'transaction'])
+            ->where('user_id', $owner->id)
+            ->where('property_status_id', 1)
+            ->orderByDesc('is_featured')
+            ->orderByDesc('id');
+
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+
+        $properties = $query->get();
+
+        return view('user-properties', compact('properties', 'owner', 'cols'));
     }
 
     public function getImageProperty($id)

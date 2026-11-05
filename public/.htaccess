@@ -38,6 +38,12 @@
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # El widget /user-properties/{id} se incrusta en sitios ajenos, ahi
+    # SAMEORIGIN lo bloquea. Se usa THE_REQUEST (la linea cruda del request)
+    # porque mod_rewrite ya reescribio la URI a index.php en esta fase.
+    Header always unset X-Frame-Options "expr=%{THE_REQUEST} =~ m#^\w+ /user-properties/#"
+    Header always set Content-Security-Policy "frame-ancestors *" "expr=%{THE_REQUEST} =~ m#^\w+ /user-properties/#"
 </IfModule>
 
 <IfModule mod_deflate.c>
