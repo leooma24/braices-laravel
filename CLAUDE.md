@@ -179,6 +179,12 @@ Tabla `property_contact_clicks` (property_id, channel, created_at). La ficha dis
 
 Para que funcione fuera del dominio, [public/.htaccess](public/.htaccess) quita `X-Frame-Options` y pone `Content-Security-Policy: frame-ancestors *` **solo** en `/user-properties/`; el resto del sitio sigue en `SAMEORIGIN`. La condición se evalúa con `%{THE_REQUEST}` y no con `Request_URI` porque en esa fase mod_rewrite ya reescribió la URI a `index.php`. Si se toca ese bloque, el widget deja de incrustarse sin aviso.
 
+El código no se arma a mano: el componente `<x-embed-code :user="..." />` ([components/embed-code.blade.php](resources/views/components/embed-code.blade.php)) lo genera con el slug ya puesto, y vive en el perfil y en un modal de `/cuenta/mis-propiedades`. Usa `@push('scripts')`, que se renderiza en el `@stack('scripts')` agregado al final del layout.
+
+### El slug del usuario tiene que ser estable
+
+Es parte de la URL pública (`/propiedades/{slug}`) y del iframe que la gente ya pegó en su sitio, así que **no puede cambiar solo**. `UserController::updateProfile` recalculaba el slug en cada guardada y `SlugHelper::createUniqueSlug` no excluía al propio registro: el slug brincaba entre `nombre` y `nombre-1` en guardadas alternas y rompía las ligas compartidas. Ahora el helper acepta `$ignoreId` y el perfil solo regenera el slug si cambió el nombre. Cobertura en `tests/Feature/UserSlugStabilityTest.php`.
+
 ## Precio por estancia vs. precio de lista
 
 Una habitación cobrada por noche salía como "$600 **/mes**": `priceSuffix()` solo miraba `transaction_type_id` y nunca `rate_period`.

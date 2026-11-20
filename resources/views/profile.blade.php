@@ -62,6 +62,15 @@
                         <a href="tel:{{ auth()->user()->phone_number }}" class="btn w-100 border rounded-0 py-3"><i class="fa fa-phone"></i> Llamar</a>
                     </div>
                 </div>
+
+                <div class="card my-3">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Tu página y tu código web</h3>
+                    </div>
+                    <div class="card-body">
+                        <x-embed-code :user="auth()->user()" />
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-8 col-xs-12">

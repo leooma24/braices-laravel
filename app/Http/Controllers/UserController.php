@@ -20,7 +20,14 @@ class UserController extends Controller
         $user = Auth::user();
         $data = $request->all();
         $user->fill($data);
-        $user->slug = SlugHelper::createUniqueSlug($user->name, User::class);
+
+        // Solo se recalcula si cambio el nombre: la URL publica del usuario
+        // (y el codigo del iframe que ya haya pegado en su sitio) tienen que
+        // seguir sirviendo despues de guardar el perfil.
+        if ($user->isDirty('name') || empty($user->slug)) {
+            $user->slug = SlugHelper::createUniqueSlug($user->name, User::class, $user->id);
+        }
+
         $user->save();
 
         return redirect(route('profile'))->with('success', 'Perfil actualizado');

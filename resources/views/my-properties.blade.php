@@ -28,9 +28,29 @@
             <h1>Mis Propiedades</h1>
             <p>Administra tu inventario, destácalas y gestiona reservas.</p>
         </div>
-        <a href="{{ route('properties.new') }}" class="btn btn-accent btn-lg">
-            <i class="fas fa-plus me-2"></i>Nueva propiedad
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-secondary btn-lg"
+                    data-bs-toggle="modal" data-bs-target="#modalCodigoWeb">
+                <i class="fas fa-code me-2"></i>Código para mi página
+            </button>
+            <a href="{{ route('properties.new') }}" class="btn btn-accent btn-lg">
+                <i class="fas fa-plus me-2"></i>Nueva propiedad
+            </a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCodigoWeb" tabindex="-1" aria-labelledby="modalCodigoWebLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCodigoWebLabel">Tu página y tu código web</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <x-embed-code :user="auth()->user()" />
+                </div>
+            </div>
+        </div>
     </div>
 
     @if ($list->isEmpty())
