@@ -104,7 +104,7 @@
                             @endunless
 
                             <div class="mt-auto pt-3 border-top">
-                                <div class="mc-price text-truncate mb-3">${{ number_format($property->price) }}</div>
+                                <div class="mc-price text-truncate mb-3">${{ number_format($property->cardPrice()) }}<small class="text-muted-2">{{ $property->priceSuffix() }}</small></div>
 
                                 <div class="owner-actions">
                                     <a href="{{ route('properties.edit', $property->slug) }}"

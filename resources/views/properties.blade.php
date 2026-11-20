@@ -185,7 +185,7 @@
 
                             <div class="property-card__footer">
                                 <span class="property-card__price">
-                                    <span class="mc-price">${{ number_format($property->price) }}</span>
+                                    <span class="mc-price">${{ number_format($property->cardPrice()) }}</span>
                                     @if($property->priceSuffix())
                                         <small>{{ $property->priceSuffix() }}</small>
                                     @endif

@@ -177,7 +177,7 @@
 
                         <hr class="bc-sep">
                         <p class="bc-price">
-                            ${{ number_format($property->price) }}
+                            ${{ number_format($property->cardPrice()) }}
                             @if($property->priceSuffix())
                                 <span>{{ $property->priceSuffix() }}</span>
                             @endif

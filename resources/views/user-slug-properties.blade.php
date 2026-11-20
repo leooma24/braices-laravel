@@ -99,7 +99,7 @@
 
                                 <hr />
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <p class="h4 m-0"><strong>${{ number_format($property->price) }}</strong></p>
+                                    <p class="h4 m-0"><strong>${{ number_format($property->cardPrice()) }}</strong><small class="text-muted">{{ $property->priceSuffix() }}</small></p>
                                     <a href="{{ route('property', $property->slug) }}" class="btn btn-primary"><i
                                             class="fas fa-arrow-right"></i></a>
                                 </div>

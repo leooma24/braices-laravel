@@ -129,7 +129,36 @@ class Property extends Model
      */
     public function priceSuffix(): ?string
     {
+        // Las reservables mandan sobre el tipo de transaccion: una habitacion
+        // cobrada por noche decia "/mes" porque aqui solo se miraba la
+        // transaccion y nunca el periodo de cobro.
+        if ($this->chargesPerStay()) {
+            return '/'.$this->ratePeriod();
+        }
+
         return in_array((int) $this->transaction_type_id, [1, 4], true) ? '/mes' : null;
+    }
+
+    /**
+     * La propiedad se cobra por estancia (noche o mes) en lugar del precio de
+     * lista. Exige las dos cosas: estar abierta a reservas y traer tarifa —
+     * los campos de reservacion se podian llenar con el switch apagado, y en
+     * ese caso no significan nada.
+     */
+    public function chargesPerStay(): bool
+    {
+        return (bool) $this->is_reservable && (float) $this->price_per_night > 0;
+    }
+
+    /**
+     * Precio que va en las tarjetas y en la ficha: la tarifa de la estancia
+     * cuando la propiedad se reserva, si no el precio de lista.
+     */
+    public function cardPrice(): float
+    {
+        return $this->chargesPerStay()
+            ? (float) $this->price_per_night
+            : (float) $this->price;
     }
 
     /**

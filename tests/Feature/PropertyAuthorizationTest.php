@@ -24,7 +24,9 @@ class PropertyAuthorizationTest extends TestCase
 
         \DB::table('property_status')->insert(['id' => 1, 'name' => 'Activa']);
         \DB::table('transaction_types')->insert(['id' => 1, 'name' => 'Renta']);
-        \DB::table('property_types')->insert(['id' => 1, 'name' => 'Casa']);
+        // Sin id fijo: las migraciones ya siembran tipos de catalogo (p. ej.
+        // "Habitaciones"), asi que el 1 puede estar ocupado.
+        \DB::table('property_types')->insert(['name' => 'Casa']);
 
         $this->owner = $this->makeUser('owner@test.com', 'owner');
         $this->intruder = $this->makeUser('intruder@test.com', 'intruder');

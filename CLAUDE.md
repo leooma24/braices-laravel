@@ -179,6 +179,17 @@ Tabla `property_contact_clicks` (property_id, channel, created_at). La ficha dis
 
 Para que funcione fuera del dominio, [public/.htaccess](public/.htaccess) quita `X-Frame-Options` y pone `Content-Security-Policy: frame-ancestors *` **solo** en `/user-properties/`; el resto del sitio sigue en `SAMEORIGIN`. La condición se evalúa con `%{THE_REQUEST}` y no con `Request_URI` porque en esa fase mod_rewrite ya reescribió la URI a `index.php`. Si se toca ese bloque, el widget deja de incrustarse sin aviso.
 
+## Precio por estancia vs. precio de lista
+
+Una habitación cobrada por noche salía como "$600 **/mes**": `priceSuffix()` solo miraba `transaction_type_id` y nunca `rate_period`.
+
+- `Property::chargesPerStay()` exige **las dos cosas**: `is_reservable = true` **y** `price_per_night > 0`. Los campos de la pestaña Reservación se podían llenar con el switch apagado, y en ese caso no significan nada.
+- `Property::cardPrice()` es el precio que va en tarjetas y ficha: `price_per_night` cuando se cobra por estancia, si no `price`. Úsalo en vez de `$property->price` en cualquier listado nuevo.
+- `priceSuffix()` devuelve `/noche` o `/mes` según `ratePeriod()` cuando se cobra por estancia; si no, `/mes` solo para las transacciones de renta (1 y 4).
+- En [property-edit.blade.php](resources/views/property-edit.blade.php) los campos de reserva se deshabilitan cuando el switch está apagado, y hay un `<input type="hidden" name="is_reservable" value="0">` antes del checkbox: sin él, despalomear no se guardaba nunca (`saveProperty` hace `fill($request->all())` y un checkbox apagado no viaja en el request).
+
+Cobertura en `tests/Unit/PropertyPricingTest.php`.
+
 ## Anti-spam
 
 Los formularios tienen reCAPTCHA v2, pero igual entraba spam (las granjas de captchas lo resuelven barato). Encima va `<x-honeypot />` + el middleware `honeypot`: descarta el envío si el campo trampa viene lleno, si la marca de tiempo cifrada fue alterada, o si el formulario se mandó en menos de 3 segundos. **Al bot se le responde con el mismo mensaje de éxito que a una persona**, a propósito: con un error visible, quien lo opera lo nota y ajusta el script. Si no viene la marca de tiempo no se castiga, por si queda una vista vieja en caché.

@@ -455,15 +455,27 @@
                                 </div>
 
                                 <div class="tab-pane fade pt-3" id="reservation" role="tabpanel" aria-labelledby="reservatuib-tab" tabindex="3">
+                                    @php($esReservable = (bool) old('is_reservable', $property->is_reservable ?? false))
                                     <div class="row">
-                                        <div class="col-xs-12 col-md-6">
-                                            <input type="checkbox" name="is_reservable" id="is_reservable" value="1"
-                                                @if(isset($property->is_reservable) && $property->is_reservable)
-                                                    checked
-                                                @endif
-                                                />
-                                            <label for="is_reservable">¿Se puede reservar?</label>
+                                        <div class="col-12 mb-3">
+                                            {{-- El hidden hace que despalomear SI se guarde: sin el, un
+                                                 checkbox apagado no viaja en el request y fill() dejaba
+                                                 el valor viejo, asi que nunca se podia apagar. --}}
+                                            <input type="hidden" name="is_reservable" value="0">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                       name="is_reservable" id="is_reservable" value="1"
+                                                       @checked($esReservable) />
+                                                <label class="form-check-label fw-semibold" for="is_reservable">
+                                                    ¿Se puede reservar?
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block mt-1" id="reservation_hint">
+                                                Enciéndelo si la propiedad se renta por estancias (una habitación
+                                                o una casa por día). Los datos de abajo solo cuentan con esto prendido.
+                                            </small>
                                         </div>
+
                                         <div class="col-xs-12 col-md-6">
                                             <x-form-input
                                                 name="max_guests"
@@ -702,11 +714,45 @@
     document.addEventListener('DOMContentLoaded', function () {
         var periodSelect = document.getElementById('rate_period');
         var priceLabel = document.querySelector('label[for="price_per_night"]');
-        if (!periodSelect || !priceLabel) { return; }
 
-        periodSelect.addEventListener('change', function () {
-            priceLabel.textContent = this.value === 'mes' ? 'Precio por mes' : 'Precio por noche';
-        });
+        if (periodSelect && priceLabel) {
+            periodSelect.addEventListener('change', function () {
+                priceLabel.textContent = this.value === 'mes' ? 'Precio por mes' : 'Precio por noche';
+            });
+        }
+
+        // Los campos de estancia se podian llenar con el switch apagado y no
+        // servian de nada: nadie avisaba, y el precio seguia saliendo "/mes".
+        // Ahora siguen al switch, para que la captura no se pierda en silencio.
+        var toggle = document.getElementById('is_reservable');
+        var panel = document.getElementById('reservation');
+        var hint = document.getElementById('reservation_hint');
+        if (!toggle || !panel) { return; }
+
+        var campos = Array.prototype.filter.call(
+            panel.querySelectorAll('input, select'),
+            function (el) { return el.id !== 'is_reservable' && el.type !== 'hidden'; }
+        );
+
+        function sincronizar() {
+            var activo = toggle.checked;
+            campos.forEach(function (el) {
+                el.disabled = !activo;
+                var grupo = el.closest('.col-xs-12, .col-md-6');
+                if (grupo) { grupo.style.opacity = activo ? '' : '0.55'; }
+            });
+            if (hint) {
+                hint.textContent = activo
+                    ? 'La propiedad aparecerá en Reservaciones y el precio se mostrará por ' +
+                      (periodSelect && periodSelect.value === 'mes' ? 'mes.' : 'noche.')
+                    : 'Enciéndelo si la propiedad se renta por estancias (una habitación o una ' +
+                      'casa por día). Los datos de abajo solo cuentan con esto prendido.';
+            }
+        }
+
+        toggle.addEventListener('change', sincronizar);
+        if (periodSelect) { periodSelect.addEventListener('change', sincronizar); }
+        sincronizar();
     });
 </script>
 

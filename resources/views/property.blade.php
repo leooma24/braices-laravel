@@ -185,7 +185,10 @@
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
                         <h2 class="card-title mb-0" style="font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em;">{{ $property->title }}</h2>
                         <div class="text-end">
-                            <span class="detail-price">${{ number_format($property->price) }}</span>
+                            <span class="detail-price">${{ number_format($property->cardPrice()) }}</span>
+                            @if($property->priceSuffix())
+                                <span class="text-muted-2">{{ $property->priceSuffix() }}</span>
+                            @endif
                             @if($property->transaction)
                                 <div class="text-muted-2 small mt-1">
                                     <i class="fas fa-tag me-1"></i>{{ $property->transaction->name }}

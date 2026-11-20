@@ -29,6 +29,7 @@ class PropertyTypeSeeder extends Seeder
             'Terrenos Ejidales',
             'Terrenos Industriales',
             'Casas de Playa',
+            'Habitaciones',
             'Proyecto Residencial',
             'Proyecto Comercial',
             'Proyecto Industrial',
